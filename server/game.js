@@ -38,7 +38,7 @@ class Game {
         this.state = 'round';
         this.round++;
         if (this.round > this.settings.rounds) {
-            const sortedPlayers = Array.from(this.players).sort((a, b) => a.score - b.score);
+            const sortedPlayers = Array.from(this.players).sort((b, a) => a.score - b.score);
             const winners = [[], [], []];
             var length1 = 0, length2 = 0;
             for (const player of sortedPlayers) {
@@ -113,7 +113,7 @@ class Game {
                 for (const player of this.players) {
                     player.socket.removeAllListeners('vote');
                 }
-                const sortedPlayers = this.votingPlayers.sort((a, b) => a.votes - b.votes);
+                const sortedPlayers = this.votingPlayers.sort((b, a) => a.votes - b.votes);
                 this.winners = [[], [], []];
                 var length1 = 0, length2 = 0;
                 for (const player of sortedPlayers) {
