@@ -155,7 +155,7 @@ class Game {
                     const node = scoreItem.cloneNode();
                     node.innerHTML = `<strong>${player.nickname}</strong><br><small>${player.score} pts</small>`;
                     scoreList.appendChild(node);
-                    this.node = node;
+                    player.node = node;
                 }
                 scoreList.innerHTML += '<div class="list-group-item"></div>';
             },
