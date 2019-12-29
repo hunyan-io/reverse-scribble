@@ -161,13 +161,13 @@ class Game {
         var args;
         switch (this.state) {
             case 'round':
-                args = this.time;
+                args = this.maxTime-this.time;
                 break;
             case 'submit':
                 args = null;
                 break;
             case 'vote':
-                args = [this.votingPlayers.map(entry => entry.board), this.time];
+                args = [this.votingPlayers.map(entry => entry.board), Math.ceil(this.votingPlayers.length*7.5)+10-this.time];
                 player.votes = 0;
                 player.votedOn = [];
                 player.socket.on('vote', id => {
