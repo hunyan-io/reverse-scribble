@@ -201,7 +201,7 @@ class Game {
             this.boardSpace.appendChild(board.display);
             const container = document.getElementById('boardDisplay');
             container.removeAttribute('id');
-            board.attach(container);
+            board.attach(container, true);
             board.play();
             const zoomBtn = document.getElementById('zoomBtn');
             zoomBtn.removeAttribute('id');
