@@ -2,7 +2,7 @@
   "name": "reverse-scribble",
   "version": "1.0.0",
   "private": true,
-  "description": "an online painting HTML5 game",
+  "description": "an online HTML5 drawing game",
   "main": "index.js",
   "scripts": {
     "start": "node server/main.js",
