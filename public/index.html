@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Reverse Skribbl</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  </head>
+  <body style="background-image:url('img/background.png');background-repeat:repeat">
+    <div class="modal fade" id="modal">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+          <div class="modal-header py-2">
+            <h5 class="modal-title" id="modalTitle"></h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body py-3" id="modalBody"></div>
+          <div class="modal-footer py-0">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="overlay" class="d-none justify-content-center position-fixed w-100 h-100" style="z-index:1000;background-color:rgba(50,50,50,0.8);">
+      <div id="overlayContent" class="row w-100 justify-content-center align-items-center text-center text-light"></div>
+    </div>
+    <div id="home" class="container py-3">
+      <div class="row">
+        <img class="img-fluid mx-auto" src="img/logo.gif">
+      </div>
+      <div class="row justify-content-around">
+        <div class="card col-11 col-md-5 px-0 my-3">
+          <div class="list-group list-group-flush">
+            <h4 class="list-group-item card-title">Play</h4>
+            <div class="list-group-item">
+              <div class="row justify-content-between px-3">
+                <input id="nickname" type="text" class="col-7 form-control" placeholder="Nickname">
+                <select class="col-4 form-control">
+                  <option>English</option>
+                </select>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <button id="play-btn" type="button" class="btn btn-primary btn-lg btn-block">Play!</button>
+              <button id="room-btn" type="button" class="btn btn-secondary btn-block">Create Room</button>
+            </div>
+          </div>
+        </div>
+        <div class="card col-11 col-md-5 px-0 my-3">
+          <div class="list-group list-group-flush">
+            <h4 class="list-group-item card-title">Info</h4>
+            <div class="list-group-item">
+              <p>Coming Soon!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row align-items-end justify-content-center pt-5">
+        <p class="text-center text-muted">
+          The owner of this site is not responsible for any user generated content (drawings, messages, usernames).<br><br>
+          Made with ♥ by HunYan.
+        </p>
+      </div>
+    </div>
+    <div id="lobby" class="container py-5">
+      <div class="row justify-content-around">
+        <div class="col-md-5 order-2 order-md-1">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="card-title">Settings</h4>
+              <label><strong>Rounds</strong></label>
+              <select id="rounds" class="form-control mb-3" disabled>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+              <label><strong>Draw time in minutes</strong></label>
+              <select id="time" class="form-control mb-3" disabled>
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+              <label><strong>Language</strong></label>
+              <select id="language" class="form-control mb-3" disabled>
+                <option value="en" selected>English</option>
+              </select>
+              <label><strong>Custom Words</strong></label>
+              <textarea id="customWords" class="form-control mb-3" placeholder="Type your custom words here separated by a comma. (Minimum of 4 words, maximum of 40 characters per word)" rows="3" disabled></textarea>
+              <div id="wordsError" class="alert alert-danger" style="display:none"></div>
+              <div class="form-check mb-3">
+                <input id="exclusive" class="form-check-input" type="checkbox" disabled>
+                <label class="form-check-label">Use custom words exclusively.</label>
+              </div>
+              <button id="startGame" type="button" class="btn btn-primary btn-block" disabled>Start Game</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5 order-1 order-md-2">
+          <div id="playerList" class="row">
+            <div id="playerModel" class="col-6 col-md-3 p-3">
+              <img id="playerImage" class="img-fluid rounded-circle" src="img/placeholder.png">
+              <p class="text-center text-break lead"><strong id="playerName">HunYan</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="game" class="container-fluid py-3">
+      <div class="row justify-content-around">
+        <div class="card col-11 col-md-2 p-0 mt-3">
+          <div class="list-group list-group-flush position-relative w-100 h-100" style="min-height:500px">
+            <div id="scoreList" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto">
+              <div id="scoreItem" class="list-group-item p-2"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-11 col-md-6 order-3 order-md-2 mt-3">
+          <div class="d-inline-flex w-100 rounded bg-dark lead text-light mb-1" style="height:40px">
+            <span id="timeBox" class="ml-2 my-auto"></span>
+            <span id="wordContent" class="m-auto"></span>
+          </div>
+          <div class="rounded bg-dark mb-1" style="height:40px">
+            <div id="toolBox" class="d-inline-flex w-100 h-100">
+              <div class="mx-2 my-auto">
+                <input type="range" id="thickness" class="form-control-range" min="5" max="50" step="5" value="10">
+              </div>
+              <div class="mx-2 my-auto" style="min-width:8%">
+                <input type="color" id="colorPalette" class="form-control p-0" value="#010101">
+              </div> 
+              <div class="btn-group btn-group-toggle h-100 pr-2 ml-auto py-1" data-toggle="buttons">
+                <label class="d-flex btn btn-light px-2 py-0 active">
+                  <input type="radio" name="tools" id="pen" checked>
+                  <img class="h-100 m-auto" src="img/pen.gif">
+                </label>
+                <label class="d-flex btn btn-light p-1">
+                  <input type="radio" name="tools" id="eraser">
+                  <img class="h-100 m-auto" src="img/eraser.gif">
+                </label>
+                <label class="d-flex btn btn-light p-1">
+                  <input type="radio" name="tools" id="fill">
+                  <img class="h-100 m-auto" src="img/fill.gif">
+                </label>
+              </div>
+              <div class="btn-group mr-2 h-100 py-1">
+                <button type="button" id="undo" class="d-flex btn btn-light px-0 py-1">
+                  <img class="h-100 m-auto" src="img/undo.png">
+                </button>
+                <button type="button" id="clear" class="d-flex btn btn-light p-0">
+                  <img class="h-100 m-auto" src="img/clear.gif">
+                </button>
+              </div>
+            </div>
+            <div id="displayBox" class="d-flex rounded bg-dark mb-1 p-1 w-100 h-100">
+              <div class="btn-group btn-group-toggle h-100 ml-auto" data-toggle="buttons">
+                <label id="displayBy2" class="btn btn-light py-0 active">
+                  <input type="radio" name="displayByN" checked>
+                  2
+                </label>
+                <label id="displayBy3" class="btn btn-light py-0">
+                  <input type="radio" name="displayByN">
+                  3
+                </label>
+                <label id="displayBy4" class="btn btn-light py-0">
+                  <input type="radio" name="displayByN">
+                  4
+                </label>
+              </div>
+            </div>
+          </div>
+          <div id="boardSpace" class="row">
+            <div id="boardModel" class="col-6">
+              <div class="w-100 position-relative">
+                <div id="boardDisplay" class="w-100 position-absolute"></div>
+                <div class="position-absolute">
+                  <button type="button" id="zoomBtn" class="btn btn-secondary btn-sm">zoom</button>
+                  <button type="button" id="voteBtn" class="btn btn-primary btn-sm">vote</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card col-11 col-md-3 order-2 order-md-3 p-0 pt-2 mt-3">
+            <div class="position-relative w-100 h-100" style="min-height:500px">
+              <div id="chatBox" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto">
+              </div>
+            </div>
+            <div class="container px-2 py-2">
+              <input id="chatInput" type="text" class="form-control" placeholder="Message">
+            </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/main.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  </body>
+</html> 
