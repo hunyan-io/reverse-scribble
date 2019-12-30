@@ -195,13 +195,13 @@ class Game {
         this.players.delete(player);
         player.lobby = null;
         player.socket.leave(this.id);
-        if (!this.players.length) {
+        if (!this.players.size) {
             return this.home.removeGame(this);
         }
         this.constructor.io.to(this.id).emit('playerLeave', player.nickname);
     }
     get locked() {
-        return this.players.length > 20 || (this.round >= this.settings.rounds && this.state != 'round');
+        return this.players.size > 20 || (this.round >= this.settings.rounds && this.state != 'round');
     }
 }
 

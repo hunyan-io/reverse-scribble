@@ -113,7 +113,7 @@ class Lobby {
         this.players.delete(player);
         player.lobby = null;
         player.socket.leave(this.id);
-        if (!this.players.length) {
+        if (!this.players.size) {
             return this.remove();
         }
         if (this.owner == player) {
@@ -126,7 +126,7 @@ class Lobby {
         }
     }
     get locked() {
-        return this.players.length > 20;
+        return this.players.size > 20;
     }
 }
 

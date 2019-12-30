@@ -65,8 +65,9 @@ class Game {
             this.addPlayer(nickname, 0);
         });
         socket.on('playerLeave', nickname => {
-            this.players[nickname].node.remove();
+            const player = this.players[nickname];
             delete this.players[nickname];
+            player.score = 0;
         });
         var whiteDiv = false;
         socket.on('message', (nickname, message) => {
