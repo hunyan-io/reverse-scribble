@@ -26,70 +26,6 @@ function colorPixel(data, pos, color) {
     data[pos+3] = color.a;
 };
 
-// http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
-function floodFill(canvas, ctx, startX, startY, fillColor) {
-    var dstImg = ctx.getImageData(0,0,canvas.width,canvas.height);
-    var dstData = dstImg.data;
-  
-    var startPos = getPixelPos(canvas, startX, startY);
-    if (matchStartColor(dstData, startPos, fillColor)) return;
-    var startColor = {
-        r: dstData[startPos],
-        g: dstData[startPos+1],
-        b: dstData[startPos+2],
-        a: dstData[startPos+3]
-    };
-
-    var todo = [[startX,startY]];
-  
-    while (todo.length) {
-        var pos = todo.pop();
-        var x = pos[0];
-        var y = pos[1];  
-        var currentPos = getPixelPos(canvas, x, y);
-    
-        while((y-- >= 0) && matchStartColor(dstData, currentPos, startColor)) {
-            currentPos -= canvas.width * 4;
-        }
-    
-        currentPos += canvas.width * 4;
-        ++y;
-        var reachLeft = false;
-        var reachRight = false;
-    
-        while((y++ < canvas.height-1) && matchStartColor(dstData, currentPos, startColor)) {
-    
-            colorPixel(dstData, currentPos, fillColor);
-      
-            if (x > 0) {
-                if (matchStartColor(dstData, currentPos-4, startColor)) {
-                    if (!reachLeft) {
-                        todo.push([x-1, y]);
-                        reachLeft = true;
-                    }
-                } else if (reachLeft) {
-                    reachLeft = false;
-                }
-            }
-      
-            if (x < canvas.width-1) {
-                if (matchStartColor(dstData, currentPos+4, startColor)) {
-                    if (!reachRight) {
-                        todo.push([x+1, y]);
-                        reachRight = true;
-                    }
-                } else if (reachRight) {
-                    reachRight = false;
-                }
-            }
-
-            currentPos += canvas.width * 4;
-        }
-    }
-  
-    ctx.putImageData(dstImg,0,0);
-};
-
 function hexToRgb(color) {
     var int = parseInt(color.slice(1), 16);
     return {
@@ -98,6 +34,36 @@ function hexToRgb(color) {
         b: int & 255,
         a: 255
     }
+}
+
+const brushImages = {
+    bucket: new Image(),
+    eraser: new Image()
+}
+brushImages.bucket.src = 'img/fill.gif';
+brushImages.eraser.src = 'img/eraser.gif';
+const brushCanvas = document.createElement('canvas');
+const brushCtx = brushCanvas.getContext('2d');
+function setBrush(thickness, color, mode) {
+    thickness = parseInt(thickness);
+    brushCanvas.width = thickness+(mode==0 ? 0 : 25);
+    brushCanvas.height = thickness+(mode==0 ? 0 : 25);
+    brushCtx.clearRect(0, 0, brushCanvas.width, brushCanvas.height);
+    brushCtx.beginPath();
+    const r = thickness/2;
+    brushCtx.arc(r, r, r, 0, Math.PI*2);
+    brushCtx.fillStyle = color;
+    brushCtx.fill();
+    brushCtx.strokeStyle = '#ffffff';
+    brushCtx.lineWidth = 3;
+    brushCtx.stroke();
+    brushCtx.strokeStyle = '#000000';
+    brushCtx.lineWidth = 1;
+    brushCtx.stroke();
+    if (mode != 0) {
+        brushCtx.drawImage(mode==1 ? brushImages.eraser : brushImages.bucket, thickness, thickness, 25, 25);
+    }
+    return 'url('+brushCanvas.toDataURL()+') '+r+' '+r+', auto';
 }
 
 class Board {
@@ -123,6 +89,7 @@ class Board {
         this.actions = [];
         this.lastAction = null;
         this.workspace = null;
+        this.checkpoint = [];
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
@@ -130,11 +97,20 @@ class Board {
             this.thickness = settings.thickness.value;
             this.mode = settings.mode;
             this.color = settings.color.value;
+            this.resetBrush();
         }
+    }
+    clone() {
+        const clone = new this.constructor();
+        clone.actions = this.actions;
+        return clone;
     }
     clear() {
         this.ctx.fillStyle = '#ffffff';
         this.ctx.fillRect(-100, -100, 1000, 800);
+    }
+    resetBrush() {
+        this.canvas.style.cursor = setBrush(this.thickness, this.mode==modes.erase ? '#ffffff' : this.color, this.mode);
     }
     attach(element, workspace) {
         this.parent = element;
@@ -180,7 +156,8 @@ class Board {
                 document.addEventListener('mousemove', this.onMouseMove, false);
                 break;
             case modes.fill:
-                floodFill(this.canvas, this.ctx, Math.floor(this.canvas.width*x/800), Math.floor(this.canvas.height*y/600), hexToRgb(this.color));
+                this.checkpoint.unshift([this.actions.length-1, this.floodFill(Math.floor(this.canvas.width*x/800), Math.floor(this.canvas.height*y/600), hexToRgb(this.color))]);
+                this.play();
                 break;
         }
     }
@@ -221,6 +198,73 @@ class Board {
         this.clear();
         this.play();
     }
+    floodFill(startX, startY, fillColor) {
+        //flood fill algorithm from http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
+        var dstImg = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height);
+        var dstData = dstImg.data;
+      
+        var startPos = getPixelPos(this.canvas, startX, startY);
+        if (!matchStartColor(dstData, startPos, fillColor)) {
+            var startColor = {
+                r: dstData[startPos],
+                g: dstData[startPos+1],
+                b: dstData[startPos+2],
+                a: dstData[startPos+3]
+            };
+
+            var todo = [[startX,startY]];
+          
+            while (todo.length) {
+                var pos = todo.pop();
+                var x = pos[0];
+                var y = pos[1];  
+                var currentPos = getPixelPos(this.canvas, x, y);
+            
+                while((y-- >= 0) && matchStartColor(dstData, currentPos, startColor)) {
+                    currentPos -= this.canvas.width * 4;
+                }
+            
+                currentPos += this.canvas.width * 4;
+                ++y;
+                var reachLeft = false;
+                var reachRight = false;
+            
+                while((y++ < this.canvas.height-1) && matchStartColor(dstData, currentPos, startColor)) {
+            
+                    colorPixel(dstData, currentPos, fillColor);
+              
+                    if (x > 0) {
+                        if (matchStartColor(dstData, currentPos-4, startColor)) {
+                            if (!reachLeft) {
+                                todo.push([x-1, y]);
+                                reachLeft = true;
+                            }
+                        } else if (reachLeft) {
+                            reachLeft = false;
+                        }
+                    }
+              
+                    if (x < this.canvas.width-1) {
+                        if (matchStartColor(dstData, currentPos+4, startColor)) {
+                            if (!reachRight) {
+                                todo.push([x+1, y]);
+                                reachRight = true;
+                            }
+                        } else if (reachRight) {
+                            reachRight = false;
+                        }
+                    }
+
+                    currentPos += this.canvas.width * 4;
+                }
+            }
+        }
+        const dstCanvas = document.createElement('canvas');
+        dstCanvas.width = this.canvas.width;
+        dstCanvas.height = this.canvas.height;
+        dstCanvas.getContext('2d').putImageData(dstImg,0,0);
+        return dstCanvas;
+    };
     drawPath(path) {
         this.ctx.lineCap = "round";
         this.ctx.lineJoin = "round";
@@ -232,7 +276,21 @@ class Board {
         this.ctx.stroke();
     }
     play() {
-        for (const action of this.actions) {
+        var startPoint;
+        if (this.checkpoint[0]) {
+            const [id, canvas] = this.checkpoint[0];
+            if (id >= this.actions.length) {
+                this.checkpoint.shift();
+            } else {
+                const transform = this.ctx.getTransform();
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                this.ctx.drawImage(canvas, 0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.setTransform(transform);
+                startPoint = id+1;
+            }
+        }
+        for (var i = startPoint || 0; i < this.actions.length; i++) {
+            const action = this.actions[i];
             this.ctx.strokeStyle = action.color;
             this.ctx.lineWidth = action.thickness;
             if (!action.position.length) continue;
@@ -244,7 +302,8 @@ class Board {
                     this.drawPath(action.position);
                     break;
                 case modes.fill:
-                    floodFill(this.canvas, this.ctx, Math.floor(this.canvas.width*action.position[0].x/800), Math.floor(this.canvas.height*action.position[0].y/600), hexToRgb(action.color));
+                    this.checkpoint.unshift([i, this.floodFill(Math.floor(this.canvas.width*action.position[0].x/800), Math.floor(this.canvas.height*action.position[0].y/600), hexToRgb(action.color))]);
+                    return this.play();
                     break;
             }
         }

@@ -100,6 +100,12 @@ class Game {
                     this.votingPlayers[id].votes++;
                 }
             });
+            player.socket.on('unvote', id => {
+                if (this.votingPlayers[id] && player.votedOn[id]) {
+                    player.votedOn[id] = false;
+                    this.votingPlayers[id].votes--;
+                }
+            });
         }
         const maxTime = Math.ceil(this.votingPlayers.length * 7.5) + 10;
         this.constructor.io.to(this.id).emit('newVote', boardList, maxTime);
@@ -112,6 +118,7 @@ class Game {
                 this.state = 'win';
                 for (const player of this.players) {
                     player.socket.removeAllListeners('vote');
+                    player.socket.removeAllListeners('unvote');
                 }
                 const sortedPlayers = this.votingPlayers.sort((b, a) => a.votes - b.votes);
                 this.winners = [[], [], []];
@@ -176,12 +183,18 @@ class Game {
                         this.votingPlayers[id].votes++;
                     }
                 });
+                player.socket.on('unvote', id => {
+                    if (this.votingPlayers[id] && player.votedOn[id]) {
+                        player.votedOn[id] = false;
+                        this.votingPlayers[id].votes--;
+                    }
+                });
                 break;
             case 'win':
                 args = this.winners;
                 break;
         }
-        player.socket.emit('gameJoin', this.state, this.round, this.word, Array.from(this.players).map(entry => [entry.nickname, entry.score]), args);
+        player.socket.emit('gameJoin', this.state, this.round, this.settings.rounds, this.word, Array.from(this.players).map(entry => [entry.nickname, entry.score]), args);
     }
     remove() {
         for (const player of this.players) {
@@ -191,6 +204,7 @@ class Game {
     removePlayer(player) {
         player.socket.removeAllListeners('submit');
         player.socket.removeAllListeners('vote');
+        player.socket.removeAllListeners('unvote');
         player.socket.removeAllListeners('message');
         this.players.delete(player);
         player.lobby = null;

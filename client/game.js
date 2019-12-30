@@ -5,7 +5,7 @@ gameElement.remove();
 
 class Game {
     constructor(socket, stats) {
-        const [state, round, word, playerList, args] = stats;
+        const [state, round, maxRound, word, playerList, args] = stats;
         this.socket = socket;
         this.element = gameElement.cloneNode(true);
         document.body.appendChild(this.element);
@@ -23,7 +23,9 @@ class Game {
         this.boardModel.remove();
         this.timeBox = document.getElementById('timeBox');
         this.wordContent = document.getElementById('wordContent');
+        this.roundBox = document.getElementById('roundBox');
         this.wordContent.textContent = word;
+        this.roundBox.textContent = 'Round '+round+' of '+maxRound;
         this.overlay = document.getElementById('overlay');
         this.overlayContent = document.getElementById('overlayContent');
         this.settings = {
@@ -32,6 +34,7 @@ class Game {
             mode: 0
         }
         this.round = round;
+        this.maxRound = maxRound;
         this.players = {};
         this.board = null;
         this.boards = [];
@@ -48,11 +51,13 @@ class Game {
         this.settings.thickness.addEventListener('change', () => {
             if (this.board) {
                 this.board.thickness = this.settings.thickness.value;
+                this.board.resetBrush();
             }
         }, false);
         this.settings.color.addEventListener('change', () => {
             if (this.board) {
                 this.board.color = this.settings.color.value;
+                this.board.resetBrush();
             }
         }, false);
         document.getElementById('displayBy2').addEventListener('click', () => this.setDisplay(2), false);
@@ -131,7 +136,7 @@ class Game {
         this.displayBy = n;
         if (this.boards) {
             for (const board of this.boards) {
-                board.display.className = 'col-'+(12/this.displayBy);
+                board.workspace.className = 'col-'+(12/this.displayBy);
                 board.resize();
             }
         }
@@ -140,6 +145,7 @@ class Game {
         this.settings.mode = n;
         if (this.board) {
             this.board.mode = n;
+            this.board.resetBrush();
         }
     }
     addPlayer(nickname, score) {
@@ -168,6 +174,7 @@ class Game {
     }
     newRound(word, maxTime) {
         this.round++;
+        this.roundBox.textContent = 'Round '+this.round+' of '+this.maxRound;
         this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');
         this.wordContent.textContent = word;
         this.timeBox.textContent = maxTime;
@@ -199,20 +206,43 @@ class Game {
         var id = 0;
         for (const board of this.boards) {
             const boardId = id++;
-            board.display = this.boardModel.cloneNode(true);
-            board.display.className = 'col-'+(12/this.displayBy);
-            this.boardSpace.appendChild(board.display);
+            board.workspace = this.boardModel.cloneNode(true);
+            board.workspace.className = 'col-'+(12/this.displayBy);
+            this.boardSpace.appendChild(board.workspace);
             const container = document.getElementById('boardDisplay');
             container.removeAttribute('id');
-            board.attach(container, true);
+            board.canvas.className = 'rounded border';
+            board.canvas.style.setProperty('border-width', '3px', 'important');
+            board.attach(container);
             board.play();
             const zoomBtn = document.getElementById('zoomBtn');
             zoomBtn.removeAttribute('id');
             const voteBtn = document.getElementById('voteBtn');
             voteBtn.removeAttribute('id');
+            let voting = false;
             voteBtn.addEventListener('click', () => {
-                voteBtn.disabled = true;
-                this.socket.emit('vote', boardId);
+                voting = !voting;
+                voteBtn.className = voteBtn.className.replace(voting ? 'btn-primary' : 'btn-danger', voting ? 'btn-danger' : 'btn-primary');
+                voteBtn.textContent = voting ? 'unvote' : 'vote';
+                board.canvas.className = voting ? 'rounded border border-primary' : 'rounded border';
+                board.canvas.style.setProperty('border-width', voting ? '8px' : '3px', 'important');
+                this.socket.emit(voting ? 'vote' : 'unvote', boardId);
+            }, false);
+            zoomBtn.addEventListener('click', () => {
+                this.overlayContent.innerHTML = `
+                    <div class="col-12 col-sm-11 col-md-7">
+                        <button type="button" id="closeZoom" class="btn btn-secondary btn-block">
+                            Close
+                        </button>
+                        <div id="zoomSpace" class="w-100"></div>
+                    </div>
+                `;
+                document.getElementById('closeZoom').addEventListener('click', () => {
+                    this.overlayContent.innerHTML = '';
+                    this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');
+                }, false);
+                this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');
+                board.clone().attach(document.getElementById('zoomSpace'));
             }, false);
         }
     }
@@ -301,7 +331,7 @@ class Game {
                 </div>
             </div>
         `;
-        this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');;
+        this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');
         setTimeout(() => {
             this.remove();
             this.constructor.onEnd();
