@@ -93,6 +93,9 @@ class Board {
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
+        this.onTouchStart = this.onTouchStart.bind(this);
+        this.onTouchMove = this.onTouchMove.bind(this);
+        this.onTouchEnd = this.onTouchEnd.bind(this);
         if (settings) {
             this.thickness = settings.thickness.value;
             this.mode = settings.mode;
@@ -136,6 +139,20 @@ class Board {
             this.workspace.style.height = this.workspace.style.maxHeight = Math.ceil(this.canvas.height)+'px';
         }
     }
+    onTouchStart(e) {
+        if (e.targetTouches.length) {
+            this.onMouseUp();
+            this.onMouseDown(e.targetTouches.item(0));
+        }
+    }
+    onTouchMove(e) {
+        if (e.changedTouches.length) {
+            this.onMouseMove(e.changedTouches.item(0));
+        }
+    }
+    onTouchEnd(e) {
+        this.onMouseUp();
+    }
     onMouseDown(e) {
         if (e.button) return;
         const rect = this.canvas.getBoundingClientRect()
@@ -154,6 +171,7 @@ class Board {
             case modes.erase:
             case modes.draw:
                 document.addEventListener('mousemove', this.onMouseMove, false);
+                document.addEventListener('touchmove', this.onTouchMove, false);
                 break;
             case modes.fill:
                 this.checkpoint.unshift([this.actions.length-1, this.floodFill(Math.floor(this.canvas.width*x/800), Math.floor(this.canvas.height*y/600), hexToRgb(this.color))]);
@@ -181,15 +199,20 @@ class Board {
             case modes.draw:
             case modes.erase:
                 document.removeEventListener('mousemove', this.onMouseMove, false);
+                document.removeEventListener('touchmove', this.onTouchMove, false);
         }
     }
     record() {
         this.canvas.addEventListener('mousedown', this.onMouseDown, false);
         document.addEventListener('mouseup', this.onMouseUp, false);
+        this.canvas.addEventListener('touchstart', this.onTouchStart, false);
+        document.addEventListener('touchend', this.onTouchEnd, false);
     }
     stop() {
         this.canvas.removeEventListener('mousedown', this.onMouseDown, false);
         document.removeEventListener('mouseup', this.onMouseUp, false);
+        this.canvas.removeEventListener('touchstart', this.onTouchStart, false);
+        document.removeEventListener('touchend', this.onTouchEnd, false);
         this.onMouseUp();
     }
     undo() {
