@@ -41,7 +41,8 @@ class Home {
         });
         player.socket.on('create', nickname => {
             if (player.lobby) return;
-            if (!nickname) return;
+            nickname = typeof nickname == 'string' && nickname.trim();
+            if (!nickname || nickname.length > 20) return;
             player.nickname = nickname;
             new Lobby(this, player);
         });
