@@ -25,7 +25,8 @@ class Home {
     listen(player) {
         player.socket.on('play', (id, nickname) => {
             if (player.lobby) return;
-            if (!nickname) return;
+            nickname = typeof nickname == 'string' && nickname.trim();
+            if (!nickname || nickname.length > 20) return;
             player.nickname = nickname;
             if (!id) {
                 const iterator = this.ongoing.values();
