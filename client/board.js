@@ -141,12 +141,14 @@ class Board {
     }
     onTouchStart(e) {
         if (e.targetTouches.length) {
+            e.preventDefault();
             this.onMouseUp();
             this.onMouseDown(e.targetTouches.item(0));
         }
     }
     onTouchMove(e) {
         if (e.changedTouches.length) {
+            e.preventDefault();
             this.onMouseMove(e.changedTouches.item(0));
         }
     }
