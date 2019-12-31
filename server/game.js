@@ -107,7 +107,7 @@ class Game {
                 }
             });
         }
-        const maxTime = Math.ceil(this.votingPlayers.length * 7.5) + 10;
+        const maxTime = this.votingPlayers.length + 15;
         this.constructor.io.to(this.id).emit('newVote', boardList, maxTime);
         this.time = 0;
         var timer;
@@ -174,7 +174,7 @@ class Game {
                 args = null;
                 break;
             case 'vote':
-                args = [this.votingPlayers.map(entry => entry.board), Math.ceil(this.votingPlayers.length*7.5)+10-this.time];
+                args = [this.votingPlayers.map(entry => entry.board), this.votingPlayers.length+15-this.time];
                 player.votes = 0;
                 player.votedOn = [];
                 player.socket.on('vote', id => {
