@@ -42,8 +42,12 @@ class Game {
         document.getElementById('undo').addEventListener('click', () => {
             if (this.board) this.board.undo();
         }, false);
+        document.getElementById('redo').addEventListener('click', () => {
+            if (this.board) this.board.redo();
+        }, false);
         document.getElementById('clear').addEventListener('click', () => {
             if (this.board) {
+                this.board.redoList = this.board.redoList.concat(this.board.actions.reverse());
                 this.board.actions = [];
                 this.board.clear();
             }
@@ -115,7 +119,8 @@ class Game {
                 this.newVote(args[0], args[1]);
                 break;
             case 'win':
-                this.roundWinners(args);
+                this.boards = args[1].map(info => info && new Board().decompress(info));
+                this.roundWinners(args[0]);
                 break;
         }
         socket.on('newRound', (word, maxTime) => this.newRound(word, maxTime));
@@ -136,7 +141,7 @@ class Game {
         this.displayBy = n;
         if (this.boards) {
             for (const board of this.boards) {
-                board.workspace.className = 'col-'+(12/this.displayBy);
+                board.display.className = board.display.className.replace(/col\-\d+/, 'col-'+(12/this.displayBy));
                 board.resize();
             }
         }
@@ -198,7 +203,7 @@ class Game {
         this.toolBox.className = this.toolBox.className.replace('d-inline-flex', 'd-none');
         this.displayBox.className = this.displayBox.className.replace('d-none', 'd-flex');
         this.boardSpace.innerHTML = '';
-        this.boardSpace.className = 'row justify-content-center';
+        this.boardSpace.className = 'row no-gutters justify-content-center';
         this.boardSpace.style.overflowY = 'auto';
         this.board = null;
         this.boards = boards.map(info => new Board().decompress(info));
@@ -206,15 +211,13 @@ class Game {
         var id = 0;
         for (const board of this.boards) {
             const boardId = id++;
-            board.workspace = this.boardModel.cloneNode(true);
-            board.workspace.className = 'col-'+(12/this.displayBy);
-            this.boardSpace.appendChild(board.workspace);
+            board.display = this.boardModel.cloneNode(true);
+            board.display.className = 'bg-light mb-auto rounded border col-'+(12/this.displayBy);
+            board.display.style.setProperty('border-width', '3px', 'important');
+            this.boardSpace.appendChild(board.display);
             const container = document.getElementById('boardDisplay');
             container.removeAttribute('id');
-            board.canvas.className = 'rounded border';
-            board.canvas.style.setProperty('border-width', '3px', 'important');
             board.attach(container);
-            board.play();
             const zoomBtn = document.getElementById('zoomBtn');
             zoomBtn.removeAttribute('id');
             const voteBtn = document.getElementById('voteBtn');
@@ -223,14 +226,14 @@ class Game {
             voteBtn.addEventListener('click', () => {
                 voting = !voting;
                 voteBtn.className = voteBtn.className.replace(voting ? 'btn-primary' : 'btn-danger', voting ? 'btn-danger' : 'btn-primary');
-                voteBtn.textContent = voting ? 'unvote' : 'vote';
-                board.canvas.className = voting ? 'rounded border border-primary' : 'rounded border';
-                board.canvas.style.setProperty('border-width', voting ? '8px' : '3px', 'important');
+                voteBtn.textContent = voting ? 'Unvote' : 'Vote';
+                board.display.className = 'bg-light mb-auto rounded border' + (voting ? ' border-primary col-' : ' col-')+(12/this.displayBy);
+                board.display.style.setProperty('border-width', voting ? '8px' : '3px', 'important');
                 this.socket.emit(voting ? 'vote' : 'unvote', boardId);
             }, false);
             zoomBtn.addEventListener('click', () => {
                 this.overlayContent.innerHTML = `
-                    <div class="col-12 col-sm-11 col-md-7">
+                    <div class="col-12 col-md-11 col-lg-8">
                         <button type="button" id="closeZoom" class="btn btn-secondary btn-block">
                             Close
                         </button>
@@ -250,81 +253,57 @@ class Game {
         this.overlayContent.innerHTML = `
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col display-2">Vote Results</div>
+                    <div class="col display-3">Vote Results (Round ${this.round} of ${this.maxRound})</div>
                 </div>
                 <div class="row justify-content-center">
-                    <div class="col-3">
+                    <div class="col-4">
                         ${ winners[1].length ?
                         `<br>
                         <p class="h1">${winners[1].pop()} VOTES</p>
-                        <p class="h3">
-                            ${winners[1].join('<br>')}
-                        </p>`
+                        <div class="row justify-content-center">
+                            ${winners[1].map(([nickname, boardId]) => 
+                            `<div class="col-12 col-lg-6 position-relative">
+                                <div id="board-${boardId}" class="position-absolute w-100 h-100" style:"top:0px;left:0px"></div>
+                                <div class="position-absolute w-100 text-center" style="z-index:1;left:0px;top:0px">
+                                    <h4 style="color:black;text-shadow:2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 1px 1px #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;">${nickname}</h4>
+                                </div>
+                            </div>`
+                            ).join(`
+                            `)}
+                        </div>`
                             : ''
                         }
                     </div>
-                    <div class="col-3">
+                    <div class="col-4">
                         <p class="h1">${winners[0].pop()} VOTES</p>
-                        <p class="h3">
-                            ${winners[0].join('<br>')}
-                        </p>
+                        <div class="row justify-content-center">
+                            ${winners[0].map(([nickname, boardId]) => 
+                            `<div class="col-12 col-lg-6 position-relative">
+                                <div id="board-${boardId}" class="position-absolute w-100 h-100" style="top:0px;left:0px"></div>
+                                <div class="position-absolute w-100 text-center" style="z-index:1;left:0px;top:0px">
+                                    <h4 style="color:black;text-shadow:2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 1px 1px #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;">${nickname}</h4>
+                                </div>
+                            </div>`
+                            ).join(`
+                            `)}
+                        </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-4">
                         ${ winners[2].length ?
                         `<br>
                         <br>
                         <p class="h1">${winners[2].pop()} VOTES</p>
-                        <p class="h3">
-                            ${winners[2].join('<br>')}
-                        </p>`
-                            : ''
-                        }
-                    </div>
-                </div>
-            </div>
-        `;
-        for (const winner of winners[0]) {
-            this.players[winner].score += 3;
-        }
-        for (const winner of winners[1]) {
-            this.players[winner].score += 2;
-        }
-        for (const winner of winners[2]) {
-            this.players[winner].score += 1;
-        }
-        this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');;
-    }
-    endGame(winners) {
-        this.overlayContent.innerHTML = `
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col display-2">Winners</div>
-                </div>
-                <div class="row justify-content-center">
-                    <div class="col-3">
-                        ${ winners[1].length ?
-                        `<br>
-                        <p class="h1">#2 (${this.players[winners[1][0]].score} pts)</p>
-                        <p class="h3">
-                            ${winners[1].join('<br>')}
-                        </p>`
-                            : ''
-                        }
-                    </div>
-                    <div class="col-3">
-                        <p class="h1">#1 (${this.players[winners[0][0]].score} pts)</p>
-                        <p class="h3">
-                            ${winners[0].join('<br>')}
-                        </p>
-                    </div>
-                    <div class="col-3">
-                        ${ winners[2].length ?
-                        `<br>
-                        <br>
-                        <p class="h1">#3 (${this.players[winners[2][0]].score} pts)</p>
-                        <p class="h3">
-                            ${winners[2].join('<br>')}
-                        </p>`
+                        <div class="row justify-content-center">
+                            ${winners[2].map(([nickname, boardId]) => 
+                            `<div class="col-12 col-lg-6 position-relative">
+                                <div id="board-${boardId}" class="position-absolute w-100 h-100" style:"top:0px;left:0px"></div>
+                                <div class="position-absolute w-100 text-center" style="z-index:1;left:0px;top:0px">
+                                    <h4 style="color:black;text-shadow:2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 1px 1px #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;">${nickname}</h4>
+                                </div>
+                            </div>`
+                            ).join(`
+                            `)}
+                        </div>`
                             : ''
                         }
                     </div>
@@ -332,10 +311,85 @@ class Game {
             </div>
         `;
         this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');
+        for (const [winner, boardId] of winners[0]) {
+            const element = document.getElementById('board-'+boardId);
+            const board = this.boards[boardId].clone();
+            board.workspace = element.parentElement;
+            board.canvas.className = 'rounded border';
+            board.attach(element);
+            this.players[winner].score += 3;
+        }
+        for (const [winner, boardId] of winners[1]) {
+            const element = document.getElementById('board-'+boardId);
+            const board = this.boards[boardId].clone();
+            board.workspace = element.parentElement;
+            board.canvas.className = 'rounded border';
+            board.attach(element);
+            this.players[winner].score += 2;
+        }
+        for (const [winner, boardId] of winners[2]) {
+            const element = document.getElementById('board-'+boardId);
+            const board = this.boards[boardId].clone();
+            board.workspace = element.parentElement;
+            board.canvas.className = 'rounded border';
+            board.attach(element);
+            this.players[winner].score += 1;
+        }
+    }
+    endGame(winners) {
+        this.overlayContent.innerHTML = '';
         setTimeout(() => {
-            this.remove();
-            this.constructor.onEnd();
-        }, 10000);
+            this.overlayContent.innerHTML = `
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col display-2 text-white">Winners</div>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="col-3">
+                            ${ winners[1].length ?
+                            `<br>
+                            <p class="h1 text-success">#2 (${this.players[winners[1][0]].score} pts)</p>
+                            <p class="h3">
+                                ${winners[1].join('<br>')}
+                            </p>`
+                                : ''
+                            }
+                        </div>
+                        <div class="col-3">
+                            <p class="h1 text-primary">#1 (${this.players[winners[0][0]].score} pts)</p>
+                            <p class="h3">
+                                ${winners[0].join('<br>')}
+                            </p>
+                        </div>
+                        <div class="col-3">
+                            ${ winners[2].length ?
+                            `<br>
+                            <br>
+                            <p class="h1 text-danger">#3 (${this.players[winners[2][0]].score} pts)</p>
+                            <p class="h3">
+                                ${winners[2].join('<br>')}
+                            </p>`
+                                : ''
+                            }
+                        </div>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="col-9">
+                            <button type="button" id="closeOverlay" class="btn btn-warning btn-block">
+                                Leave
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('closeOverlay').addEventListener('click', () => {
+                this.overlayContent.innerHTML = '';
+                this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');
+                this.remove();
+                this.constructor.onEnd();
+            }, false);
+        }, 3000);
+        this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');
     }
     remove() {
         this.element.remove();

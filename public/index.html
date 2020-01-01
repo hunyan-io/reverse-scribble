@@ -158,7 +158,10 @@
               </div>
               <div class="btn-group mr-2 h-100 py-1">
                 <button type="button" id="undo" class="d-flex btn btn-light h-100 p-1">
-                  <img class="mw-100 h-100 m-auto" src="img/undo.png">
+                  <img class="mw-100 h-100 m-auto" src="img/undo.gif">
+                </button>
+                <button type="button" id="redo" class="d-flex btn btn-light h-100 p-1">
+                  <img class="mw-100 h-100 m-auto" src="img/redo.gif">
                 </button>
                 <button type="button" id="clear" class="d-flex btn btn-light h-100 p-0">
                   <img class="mw-100 h-100 m-auto" src="img/clear.gif">
@@ -184,11 +187,15 @@
           </div>
           <div id="boardSpace" class="row">
             <div id="boardModel" class="col-6">
-              <div class="w-100 position-relative">
-                <div id="boardDisplay" class="w-100 position-absolute"></div>
-                <div class="position-absolute">
-                  <button type="button" id="zoomBtn" class="btn btn-warning btn-sm">zoom</button>
-                  <button type="button" id="voteBtn" class="btn btn-primary btn-sm">vote</button>
+              <div class="row no-gutters my-0 py-0">
+                <div id="boardDisplay" class="col-12 my-0 py-0"></div>
+              </div>
+              <div class="row no-gutters my-0 py-0">
+                <div class="col-6 my-0">
+                  <button type="button" id="zoomBtn" class="btn btn-warning btn-sm btn-block m-0">Zoom</button>
+                </div>
+                <div class="col-6 my-0">
+                  <button type="button" id="voteBtn" class="btn btn-primary btn-sm btn-block m-0">Vote</button>
                 </div>
               </div>
             </div>

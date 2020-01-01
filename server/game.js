@@ -45,6 +45,7 @@ class Game {
                 if (player.score == sortedPlayers[0].score) {
                     winners[0].push(player.nickname);
                     length1++;
+                    length2++;
                 } else if (player.score == sortedPlayers[length1].score) {
                     winners[1].push(player.nickname);
                     length2++;
@@ -88,8 +89,9 @@ class Game {
     }
     newVote() {
         this.state = 'vote';
-        this.votingPlayers = shuffle(Array.from(this.players));
-        const boardList = this.votingPlayers.map(player => player.board).filter(x => x);
+        this.votingPlayers = shuffle(Array.from(this.players).filter(p => p.board));
+        this.votingPlayers.forEach((player, index) => player.boardId = index);
+        const boardList = this.votingPlayers.map(player => player.board);
         for (const player of this.players) {
             player.votes = 0;
             player.votedOn = [];
@@ -125,15 +127,16 @@ class Game {
                 var length1 = 0, length2 = 0;
                 for (const player of sortedPlayers) {
                     if (player.votes == sortedPlayers[0].votes) {
-                        this.winners[0].push(player.nickname);
+                        this.winners[0].push([player.nickname, player.boardId]);
                         player.score += 3;
                         length1++;
+                        length2++;
                     } else if (player.votes == sortedPlayers[length1].votes) {
-                        this.winners[1].push(player.nickname);
+                        this.winners[1].push([player.nickname, player.boardId]);
                         player.score += 2;
                         length2++;
                     } else if (player.votes == sortedPlayers[length2].votes) {
-                        this.winners[2].push(player.nickname);
+                        this.winners[2].push([player.nickname, player.boardId]);
                         player.score += 1;
                     } else {
                         break;
@@ -191,7 +194,13 @@ class Game {
                 });
                 break;
             case 'win':
-                args = this.winners;
+                const winnerBoards = [];
+                for (let i=0; i<3; i++) {
+                    for (const [winner, boardId] of this.winners[i]) {
+                        winnerBoards[boardId] = this.votingPlayers.find(p => p.boardId == boardId);
+                    }
+                }
+                args = [this.winners, winnerBoards];
                 break;
         }
         player.socket.emit('gameJoin', this.state, this.round, this.settings.rounds, this.word, Array.from(this.players).map(entry => [entry.nickname, entry.score]), args);

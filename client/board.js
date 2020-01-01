@@ -90,6 +90,7 @@ class Board {
         this.lastAction = null;
         this.workspace = null;
         this.checkpoint = [];
+        this.redoList = [];
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
@@ -132,9 +133,9 @@ class Board {
             this.canvas.width = width;
             this.canvas.height = width*this.ratio;
             this.ctx.scale(this.canvas.width/800, this.canvas.height/600);
-            this.clear();
-            this.play();
         }
+        this.clear();
+        this.play();
         if (this.workspace) {
             this.workspace.style.height = this.workspace.style.maxHeight = Math.ceil(this.canvas.height)+'px';
         }
@@ -160,6 +161,7 @@ class Board {
         const rect = this.canvas.getBoundingClientRect()
         const x = Math.floor((e.pageX - rect.left - window.pageXOffset)*800/this.canvas.width),
               y = Math.floor((e.pageY - rect.top - window.pageYOffset)*600/this.canvas.height);
+        this.redoList = [];
         this.lastAction = {
             mode: this.mode,
             color: this.color,
@@ -219,7 +221,13 @@ class Board {
     }
     undo() {
         if (!this.actions.length) return;
-        this.actions.pop();
+        this.redoList.push(this.actions.pop());
+        this.clear();
+        this.play();
+    }
+    redo() {
+        if (!this.redoList.length) return;
+        this.actions.push(this.redoList.pop());
         this.clear();
         this.play();
     }
