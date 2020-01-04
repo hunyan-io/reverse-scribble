@@ -1,6 +1,3 @@
-const homeElement = document.getElementById('home');
-homeElement.remove();
-
 var room_id;
 for (const parameter of window.location.search.substr(1).split("&")) {
     const pair = parameter.split('=');
@@ -12,9 +9,9 @@ for (const parameter of window.location.search.substr(1).split("&")) {
 
 class Home {
     constructor(socket) {
-        this.element = homeElement.cloneNode(true);
-        document.body.appendChild(this.element);
+        this.element = document.getElementById('home');
         this.socket = socket;
+        this.hidden = false;
         const playBtn = document.getElementById('play-btn');
         const roomBtn = document.getElementById('room-btn');
         const nickname = document.getElementById('nickname');
@@ -37,10 +34,13 @@ class Home {
             socket.emit('create', nickname.value);
         }, false);
     }
+    start() {
+        document.body.appendChild(this.element);
+        this.hidden = false;
+    }
     remove() {
         this.element.remove();
-        this.socket.removeAllListeners('nameTaken');
-        this.socket.removeAllListeners('noRoom');
+        this.hidden = true;
     }
     alert(title, body) {
         $('#modalTitle').html(title);

@@ -92,25 +92,28 @@ class Game {
         this.votingPlayers = shuffle(Array.from(this.players).filter(p => p.board));
         this.votingPlayers.forEach((player, index) => player.boardId = index);
         const boardList = this.votingPlayers.map(player => player.board);
+        const maxTime = this.votingPlayers.length + 15;
         for (const player of this.players) {
             player.votes = 0;
             player.votedOn = [];
             player.socket.removeAllListeners('submit');
             player.socket.on('vote', id => {
-                if (this.votingPlayers[id] && !player.votedOn[id]) {
+                if (this.votingPlayers[id] && this.votingPlayers[id] !== player && !player.votedOn[id]) {
                     player.votedOn[id] = true;
                     this.votingPlayers[id].votes++;
                 }
             });
             player.socket.on('unvote', id => {
-                if (this.votingPlayers[id] && player.votedOn[id]) {
+                if (this.votingPlayers[id] && this.votingPlayers[id] !== player && player.votedOn[id]) {
                     player.votedOn[id] = false;
                     this.votingPlayers[id].votes--;
                 }
             });
+            const id = this.votingPlayers.indexOf(player);
+            if (id >= 0) boardList[id] = null;
+            player.socket.emit('newVote', boardList, maxTime);
+            if (id >= 0) boardList[id] = player.board;
         }
-        const maxTime = this.votingPlayers.length + 15;
-        this.constructor.io.to(this.id).emit('newVote', boardList, maxTime);
         this.time = 0;
         var timer;
         timer = setInterval(() => {

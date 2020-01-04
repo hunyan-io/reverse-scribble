@@ -1,10 +1,13 @@
-const lobbyElement = document.getElementById('lobby');
-lobbyElement.remove();
+const defaultSet = {
+    rounds: '3',
+    time: '2',
+    language: 'en',
+    customWords: ''
+}
 
 class Lobby {
-    constructor(socket, playerList) {
-        this.element = lobbyElement.cloneNode(true);
-        document.body.appendChild(this.element);
+    constructor(socket) {
+        this.element = document.getElementById('lobby');
         this.socket = socket;
         this.settings = {};
         this.settings.rounds = document.getElementById('rounds');
@@ -17,7 +20,7 @@ class Lobby {
         this.playerModel = document.getElementById('playerModel');
         this.playerModel.removeAttribute('id');
         this.playerModel.remove();
-        this.players = {};
+        this.hidden = true;
         const wordsError = document.getElementById('wordsError');
         socket.on('settingChange', (setting, value) => {
             switch (setting) {
@@ -26,16 +29,6 @@ class Lobby {
                     break;
                 default:
                     this.settings[setting].value = value;
-            }
-        });
-        socket.on('playerJoin', nickname => {
-            this.addPlayer(nickname);
-        });
-        socket.on('playerLeave', (nickname, isOwner) => {
-            this.players[nickname].remove();
-            delete this.players[nickname];
-            if (isOwner) {
-                this.enableSettings();
             }
         });
         for (const setting of Object.keys(this.settings)) {
@@ -70,6 +63,31 @@ class Lobby {
                     }, false);
             }
         }
+        this.element.remove();
+        this.element.style.display = 'block';
+    }
+    start(playerList) {
+        document.body.appendChild(this.element);
+        this.hidden = false;
+        this.playerList.innerHTML = '';
+        for (const [setting, value] of Object.entries(defaultSet)) {
+            this.settings[setting].value = value;
+            this.settings[setting].disabled = true;
+        }
+        this.settings.exclusive.checked = false;
+        this.settings.exclusive.disabled = true;
+        this.startBtn.disabled = true;
+        this.players = {};
+        this.socket.on('playerJoin', nickname => {
+            this.addPlayer(nickname);
+        });
+        this.socket.on('playerLeave', (nickname, isOwner) => {
+            this.players[nickname].remove();
+            delete this.players[nickname];
+            if (isOwner) {
+                this.enableSettings();
+            }
+        });
         for (const nickname of playerList) {
             this.addPlayer(nickname);
         }
@@ -88,10 +106,9 @@ class Lobby {
     }
     remove() {
         this.element.remove();
-        this.socket.removeAllListeners('startGame');
-        this.socket.removeAllListeners('settingChange');
         this.socket.removeAllListeners('playerJoin');
         this.socket.removeAllListeners('playerLeave');
+        this.hidden = true;
     }
     addPlayer(nickname) {
         var node;

@@ -6,33 +6,27 @@ const io = require('socket.io-client'),
       socket = io();
 
 var home = new Home(socket);
-var lobby;
-var game;
+var lobby = new Lobby(socket);
+var game = new Game(socket);
 
 socket.on('disconnect', () => {
-    if (!home) {
-        if (lobby || game) (lobby || game).remove();
-        lobby = null;
-        game = null;
-        home = new Home(socket);
+    if (home.hidden) {
+        if (!lobby.hidden || !game.hidden) (lobby.hidden ? game : lobby).remove();
+        home.start();
         home.alert('Disconnected', 'You have been disconnected.');
     }
 });
 
 socket.on('lobbyJoin', playerList => {
-    if (home) home.remove();
-    home = null;
-    lobby = new Lobby(socket, playerList);
+    if (!home.hidden) home.remove();
+    lobby.start(playerList);
 });
 
 socket.on('gameJoin', (...args) => {
-    if (home || lobby) (home || lobby).remove();
-    home = null;
-    lobby = null;
-    game = new Game(socket, args);
+    if (!home.hidden || !lobby.hidden) (home.hidden ? lobby : home).remove();
+    game.start(args);
 });
 
 Game.onEnd = () => {
-    game = null;
-    home = new Home(socket);
+    home.start();
 }

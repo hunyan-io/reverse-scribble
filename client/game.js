@@ -1,14 +1,10 @@
 const Board = require('./board.js');
 
-const gameElement = document.getElementById('game');
-gameElement.remove();
-
 class Game {
-    constructor(socket, stats) {
-        const [state, round, maxRound, word, playerList, args] = stats;
+    constructor(socket) {
         this.socket = socket;
-        this.element = gameElement.cloneNode(true);
-        document.body.appendChild(this.element);
+        this.element = document.getElementById('game');
+        this.hidden = true;
         this.toolBox = document.getElementById('toolBox');
         this.displayBox = document.getElementById('displayBox');
         this.chatBox = document.getElementById('chatBox');
@@ -24,8 +20,6 @@ class Game {
         this.timeBox = document.getElementById('timeBox');
         this.wordContent = document.getElementById('wordContent');
         this.roundBox = document.getElementById('roundBox');
-        this.wordContent.textContent = word;
-        this.roundBox.textContent = 'Round '+round+' of '+maxRound;
         this.overlay = document.getElementById('overlay');
         this.overlayContent = document.getElementById('overlayContent');
         this.settings = {
@@ -33,11 +27,6 @@ class Game {
             color: document.getElementById('colorPalette'),
             mode: 0
         }
-        this.round = round;
-        this.maxRound = maxRound;
-        this.players = {};
-        this.board = null;
-        this.boards = [];
         this.displayBy = 2;
         document.getElementById('undo').addEventListener('click', () => {
             if (this.board) this.board.undo();
@@ -70,21 +59,14 @@ class Game {
         document.getElementById('pen').addEventListener('click', () => this.setMode(0), false);
         document.getElementById('eraser').addEventListener('click', () => this.setMode(1), false);
         document.getElementById('fill').addEventListener('click', () => this.setMode(2), false);
-        socket.on('playerJoin', nickname => {
-            this.addPlayer(nickname, 0);
-        });
-        socket.on('playerLeave', nickname => {
-            const player = this.players[nickname];
-            delete this.players[nickname];
-            player.score = 0;
-        });
         var whiteDiv = false;
         socket.on('message', (nickname, message) => {
             const scrolled = this.chatBox.scrollTop && this.chatBox.scrollTop != this.chatBox.scrollHeight - this.chatBox.clientHeight;
             const element = document.createElement('div');
             whiteDiv = !whiteDiv;
             element.className = 'px-2 bg-' + (whiteDiv ? 'white' : 'light');
-            element.innerHTML = '<strong>'+nickname+':</strong> '+message;
+            element.innerHTML = '<strong>'+nickname+':</strong> ';
+            element.appendChild(document.createTextNode(message));
             this.chatBox.appendChild(element);
             if (!scrolled) {
                 this.chatBox.scrollTop = this.chatBox.scrollHeight - this.chatBox.clientHeight;
@@ -99,6 +81,42 @@ class Game {
                 }
             }
         }, false);
+        socket.on('newRound', (word, maxTime) => this.newRound(word, maxTime));
+        socket.on('endGame', winners => this.endGame(winners));
+        socket.on('timeTick', () => {
+            this.timeBox.textContent -= 1;
+        });
+        socket.on('endRound', () => {
+            socket.emit('submit', this.board.compress());
+            this.waitForSubmit();
+        });
+        socket.on('newVote', (boards, maxTime) => this.newVote(boards, maxTime));
+        socket.on('winners', winners => {
+            this.roundWinners(winners);
+        });
+        this.element.remove();
+        this.element.style.display = 'block';
+    }
+    start(stats) {
+        const [state, round, maxRound, word, playerList, args] = stats;
+        document.body.appendChild(this.element);
+        this.hidden = false;
+        this.chatBox.innerHTML = '';
+        this.wordContent.textContent = word;
+        this.roundBox.textContent = 'Round '+round+' of '+maxRound;
+        this.round = round;
+        this.maxRound = maxRound;
+        this.players = {};
+        this.board = null;
+        this.boards = [];
+        this.socket.on('playerJoin', nickname => {
+            this.addPlayer(nickname, 0);
+        });
+        this.socket.on('playerLeave', nickname => {
+            const player = this.players[nickname];
+            delete this.players[nickname];
+            player.score = 0;
+        });
         for (const [nickname, score] of playerList) {
             this.addPlayer(nickname, score);
         }
@@ -119,28 +137,20 @@ class Game {
                 this.newVote(args[0], args[1]);
                 break;
             case 'win':
-                this.boards = args[1].map(info => info && new Board().decompress(info));
+                this.round--;
+                this.newRound(word, 0);
+                this.waitForSubmit();
+                this.newVote(args[1], 0);
                 this.roundWinners(args[0]);
                 break;
         }
-        socket.on('newRound', (word, maxTime) => this.newRound(word, maxTime));
-        socket.on('endGame', winners => this.endGame(winners));
-        socket.on('timeTick', () => {
-            this.timeBox.textContent -= 1;
-        });
-        socket.on('endRound', () => {
-            socket.emit('submit', this.board.compress());
-            this.waitForSubmit();
-        });
-        socket.on('newVote', (boards, maxTime) => this.newVote(boards, maxTime));
-        socket.on('winners', winners => {
-            this.roundWinners(winners);
-        });
+        this.setMode(this.settings.mode);
     }
     setDisplay(n) {
         this.displayBy = n;
         if (this.boards) {
             for (const board of this.boards) {
+                if (!board) continue;
                 board.display.className = board.display.className.replace(/col\-\d+/, 'col-'+(12/this.displayBy));
                 board.resize();
             }
@@ -198,6 +208,49 @@ class Game {
         this.overlayContent.innerHTML = '<div class="col display-2">Submitting...</div>';
         this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');
     }
+    addBoard(board, id) {
+        if (!board) return;
+        board.display = this.boardModel.cloneNode(true);
+        board.display.className = 'bg-light mb-auto rounded border col-'+(12/this.displayBy);
+        board.display.style.setProperty('border-width', '3px', 'important');
+        this.boardSpace.appendChild(board.display);
+        const container = document.getElementById('boardDisplay');
+        container.removeAttribute('id');
+        board.attach(container);
+        const zoomBtn = document.getElementById('zoomBtn');
+        zoomBtn.removeAttribute('id');
+        const voteBtn = document.getElementById('voteBtn');
+        voteBtn.removeAttribute('id');
+        let voting = false;
+        if (id !== undefined) {
+            voteBtn.addEventListener('click', () => {
+                voting = !voting;
+                voteBtn.className = voteBtn.className.replace(voting ? 'btn-primary' : 'btn-danger', voting ? 'btn-danger' : 'btn-primary');
+                voteBtn.textContent = voting ? 'Unvote' : 'Vote';
+                board.display.className = 'bg-light mb-auto rounded border' + (voting ? ' border-primary col-' : ' col-')+(12/this.displayBy);
+                board.display.style.setProperty('border-width', voting ? '8px' : '3px', 'important');
+                this.socket.emit(voting ? 'vote' : 'unvote', id);
+            }, false);
+        } else {
+            voteBtn.disabled = true;
+        }
+        zoomBtn.addEventListener('click', () => {
+            this.overlayContent.innerHTML = `
+                <div class="col-12 col-md-11 col-lg-8">
+                    <button type="button" id="closeZoom" class="btn btn-secondary btn-block">
+                        Close
+                    </button>
+                    <div id="zoomSpace" class="w-100"></div>
+                </div>
+            `;
+            document.getElementById('closeZoom').addEventListener('click', () => {
+                this.overlayContent.innerHTML = '';
+                this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');
+            }, false);
+            this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');
+            board.clone().attach(document.getElementById('zoomSpace'));
+        }, false);
+    }
     newVote(boards, maxTime) {
         this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');;
         this.toolBox.className = this.toolBox.className.replace('d-inline-flex', 'd-none');
@@ -205,48 +258,23 @@ class Game {
         this.boardSpace.innerHTML = '';
         this.boardSpace.className = 'row no-gutters justify-content-center';
         this.boardSpace.style.overflowY = 'auto';
-        this.board = null;
-        this.boards = boards.map(info => new Board().decompress(info));
+        let selfBoard;
+        if (this.board) {
+            selfBoard = this.board.clone();
+            this.board = null;
+        }
+        this.boards = boards.map(info => info && new Board().decompress(info));
         this.timeBox.textContent = maxTime;
+        this.addBoard(selfBoard);
         var id = 0;
         for (const board of this.boards) {
-            const boardId = id++;
-            board.display = this.boardModel.cloneNode(true);
-            board.display.className = 'bg-light mb-auto rounded border col-'+(12/this.displayBy);
-            board.display.style.setProperty('border-width', '3px', 'important');
-            this.boardSpace.appendChild(board.display);
-            const container = document.getElementById('boardDisplay');
-            container.removeAttribute('id');
-            board.attach(container);
-            const zoomBtn = document.getElementById('zoomBtn');
-            zoomBtn.removeAttribute('id');
-            const voteBtn = document.getElementById('voteBtn');
-            voteBtn.removeAttribute('id');
-            let voting = false;
-            voteBtn.addEventListener('click', () => {
-                voting = !voting;
-                voteBtn.className = voteBtn.className.replace(voting ? 'btn-primary' : 'btn-danger', voting ? 'btn-danger' : 'btn-primary');
-                voteBtn.textContent = voting ? 'Unvote' : 'Vote';
-                board.display.className = 'bg-light mb-auto rounded border' + (voting ? ' border-primary col-' : ' col-')+(12/this.displayBy);
-                board.display.style.setProperty('border-width', voting ? '8px' : '3px', 'important');
-                this.socket.emit(voting ? 'vote' : 'unvote', boardId);
-            }, false);
-            zoomBtn.addEventListener('click', () => {
-                this.overlayContent.innerHTML = `
-                    <div class="col-12 col-md-11 col-lg-8">
-                        <button type="button" id="closeZoom" class="btn btn-secondary btn-block">
-                            Close
-                        </button>
-                        <div id="zoomSpace" class="w-100"></div>
-                    </div>
-                `;
-                document.getElementById('closeZoom').addEventListener('click', () => {
-                    this.overlayContent.innerHTML = '';
-                    this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');
-                }, false);
-                this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');
-                board.clone().attach(document.getElementById('zoomSpace'));
-            }, false);
+            if (!board) {
+                if (selfBoard) {
+                    this.boards[this.boards.indexOf(board)] = selfBoard;
+                }
+                continue;
+            }
+            this.addBoard(board, id++);
         }
     }
     roundWinners(winners) {
@@ -373,7 +401,7 @@ class Game {
                             }
                         </div>
                     </div>
-                    <div class="row justify-content-center">
+                    <div class="row justify-content-center mt-4">
                         <div class="col-9">
                             <button type="button" id="closeOverlay" class="btn btn-warning btn-block">
                                 Leave
@@ -388,21 +416,15 @@ class Game {
                 this.remove();
                 this.constructor.onEnd();
             }, false);
-        }, 3000);
+        }, 1000);
         this.overlay.className = this.overlay.className.replace('d-none', 'd-flex');
     }
     remove() {
         this.element.remove();
         this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');
-        this.socket.removeAllListeners('message');
         this.socket.removeAllListeners('playerJoin');
         this.socket.removeAllListeners('playerLeave');
-        this.socket.removeAllListeners('timeTick');
-        this.socket.removeAllListeners('endRound');
-        this.socket.removeAllListeners('newVote');
-        this.socket.removeAllListeners('winners');
-        this.socket.removeAllListeners('newRound');
-        this.socket.removeAllListeners('endGame');
+        this.hidden = true;
     }
 }
 

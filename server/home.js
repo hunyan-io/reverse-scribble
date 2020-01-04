@@ -1,5 +1,20 @@
 const Lobby = require('./lobby.js');
 
+const entityMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;'
+};
+
+function escapeHTML(string) {
+    return string.replace(/[&<>"'`=\/]/g, s => entityMap[s]);
+}
+
 class Home {
     constructor() {
         this.lobbies = {};
@@ -27,7 +42,7 @@ class Home {
             if (player.lobby) return;
             nickname = typeof nickname == 'string' && nickname.trim();
             if (!nickname || nickname.length > 20) return;
-            player.nickname = nickname;
+            player.nickname = escapeHTML(nickname);
             if (!id) {
                 const iterator = this.ongoing.values();
                 do {
@@ -44,7 +59,7 @@ class Home {
             if (player.lobby) return;
             nickname = typeof nickname == 'string' && nickname.trim();
             if (!nickname || nickname.length > 20) return;
-            player.nickname = nickname;
+            player.nickname = escapeHTML(nickname);
             new Lobby(this, player);
         });
     }
