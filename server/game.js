@@ -168,7 +168,7 @@ class Game {
         });
         this.players.add(player);
         player.socket.join(this.id);
-        player.socket.broadcast.to(this.id).emit('playerJoin', player.nickname);
+        player.socket.broadcast.to(this.id).emit('playerJoin', player.nickname, player.avatar);
         player.lobby = this;
         player.score = 0;
         var args;
@@ -206,7 +206,7 @@ class Game {
                 args = [this.winners, winnerBoards];
                 break;
         }
-        player.socket.emit('gameJoin', this.state, this.round, this.settings.rounds, this.word, Array.from(this.players).map(entry => [entry.nickname, entry.score]), args);
+        player.socket.emit('gameJoin', this.state, this.round, this.settings.rounds, this.word, Array.from(this.players).map(entry => [entry.nickname, entry.score, entry.avatar]), args);
     }
     remove() {
         for (const player of this.players) {

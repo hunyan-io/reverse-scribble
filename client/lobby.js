@@ -78,8 +78,8 @@ class Lobby {
         this.settings.exclusive.disabled = true;
         this.startBtn.disabled = true;
         this.players = {};
-        this.socket.on('playerJoin', nickname => {
-            this.addPlayer(nickname);
+        this.socket.on('playerJoin', player => {
+            this.addPlayer(player);
         });
         this.socket.on('playerLeave', (nickname, isOwner) => {
             this.players[nickname].remove();
@@ -88,8 +88,8 @@ class Lobby {
                 this.enableSettings();
             }
         });
-        for (const nickname of playerList) {
-            this.addPlayer(nickname);
+        for (const player of playerList) {
+            this.addPlayer(player);
         }
         if (playerList.length == 1) {
             this.enableSettings();
@@ -110,15 +110,19 @@ class Lobby {
         this.socket.removeAllListeners('playerLeave');
         this.hidden = true;
     }
-    addPlayer(nickname) {
+    addPlayer(player) {
         var node;
         node = this.playerModel.cloneNode(true);
         this.playerList.appendChild(node);
-        document.getElementById('playerImage').removeAttribute('id');
+        const playerImage = document.getElementById('playerImage');
+        playerImage.removeAttribute('id');
+        if (player.avatar) {
+            playerImage.src = 'https://i.imgur.com/'+player.avatar;
+        }
         const playerName = document.getElementById('playerName');
         playerName.removeAttribute('id');
-        playerName.innerHTML = nickname;
-        this.players[nickname] = node;
+        playerName.innerHTML = player.nickname;
+        this.players[player.nickname] = node;
     }
 }
 

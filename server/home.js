@@ -38,10 +38,13 @@ class Home {
         this.ongoing.delete(game.id);
     }
     listen(player) {
-        player.socket.on('play', (id, nickname) => {
+        player.socket.on('play', (id, nickname, avatar) => {
             if (player.lobby) return;
             nickname = typeof nickname == 'string' && nickname.trim();
             if (!nickname || nickname.length > 20) return;
+            if (typeof avatar == 'string' && avatar.match(/^[a-zA-Z0-9]{3,15}\.[a-zA-Z]{1,5}$/)) {
+                player.avatar = avatar;
+            }
             player.nickname = escapeHTML(nickname);
             if (!id) {
                 const iterator = this.ongoing.values();
@@ -55,10 +58,13 @@ class Home {
                 player.socket.emit('noRoom');
             }
         });
-        player.socket.on('create', nickname => {
+        player.socket.on('create', (nickname, avatar) => {
             if (player.lobby) return;
             nickname = typeof nickname == 'string' && nickname.trim();
             if (!nickname || nickname.length > 20) return;
+            if (typeof avatar == 'string' && avatar.match(/^[a-zA-Z0-9]{3,15}\.[a-zA-Z]{1,5}$/)) {
+                player.avatar = avatar;
+            }
             player.nickname = escapeHTML(nickname);
             new Lobby(this, player);
         });

@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Reverse Scribble</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   </head>
@@ -34,11 +35,27 @@
           <div class="list-group list-group-flush">
             <h4 class="list-group-item card-title">Play</h4>
             <div class="list-group-item">
-              <div class="row justify-content-between px-3">
-                <input id="nickname" type="text" class="col-7 form-control" maxlength="20" placeholder="Nickname">
-                <select class="col-4 form-control">
-                  <option>English</option>
-                </select>
+              <div class="row">
+                <div class="col-3 mx-2 p-1">
+                  <label id="avatarField" class="position-relative w-100 m-0" style="height:0;padding-bottom:100%;cursor:pointer">
+                    <input type="file" class="d-none" id="avatarInput" accept="image/*">
+                    <img id="avatarImg" class="position-absolute img-thumbnail w-100 h-100 rounded-circle" src="img/placeholder.png" style="top:0;left:0">
+                    <div id="avatarOverlay" class="position-absolute lead text-light w-100 h-100 rounded-circle bg-dark align-items-center justify-content-center" style="opacity:0.8;top:0;left:0;display:none">Change</div>
+                  </label>
+                  <p id="avatarStatus" class="mb-0 text-center text-secondary" style="display:none">Uploading...</p>
+                </div>
+                <div class="col-7 pl-3">
+                  <div class="row h-100 align-items-center">
+                    <div class="col-12">
+                      <input id="nickname" type="text" class="form-control" maxlength="20" placeholder="Nickname">
+                    </div>
+                    <div class="col-12">
+                      <select class="form-control">
+                        <option>English</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="list-group-item">
@@ -112,7 +129,9 @@
         <div class="col-lg-5 order-1 order-lg-2">
           <div id="playerList" class="row">
             <div id="playerModel" class="col-6 col-lg-3 p-3">
-              <img id="playerImage" class="img-fluid rounded-circle" src="img/placeholder.png">
+              <div class="position-relative w-100 m-0" style="height:0;padding-bottom:100%">
+                <img id="playerImage" class="position-absolute img-thumbnail w-100 h-100 rounded-circle" src="img/placeholder.png" style="top:0;left:0">
+              </div>
               <p class="text-center text-break lead"><strong id="playerName">HunYan</strong></p>
             </div>
           </div>

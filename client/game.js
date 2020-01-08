@@ -109,16 +109,16 @@ class Game {
         this.players = {};
         this.board = null;
         this.boards = [];
-        this.socket.on('playerJoin', nickname => {
-            this.addPlayer(nickname, 0);
+        this.socket.on('playerJoin', (nickname, avatar) => {
+            this.addPlayer(nickname, 0, avatar);
         });
         this.socket.on('playerLeave', nickname => {
             const player = this.players[nickname];
             delete this.players[nickname];
             player.score = 0;
         });
-        for (const [nickname, score] of playerList) {
-            this.addPlayer(nickname, score);
+        for (const [nickname, score, avatar] of playerList) {
+            this.addPlayer(nickname, score, avatar);
         }
         switch (state) {
             case 'round':
@@ -163,12 +163,13 @@ class Game {
             this.board.resetBrush();
         }
     }
-    addPlayer(nickname, score) {
+    addPlayer(nickname, score, avatar) {
         const scoreList = this.scoreList,
               scoreItem = this.scoreItem,
               players = this.players;
         players[nickname] = {
             nickname: nickname,
+            avatar: 'https://i.imgur.com/'+avatar, //or better avatarNode (?)
             _score: 0,
             set score(value) { 
                 this._score = value
