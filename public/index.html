@@ -42,7 +42,6 @@
                     <img id="avatarImg" class="position-absolute img-thumbnail w-100 h-100 rounded-circle" src="img/placeholder.png" style="top:0;left:0">
                     <div id="avatarOverlay" class="position-absolute lead text-light w-100 h-100 rounded-circle bg-dark align-items-center justify-content-center" style="opacity:0.8;top:0;left:0;display:none">Change</div>
                   </label>
-                  <p id="avatarStatus" class="mb-0 text-center text-secondary" style="display:none">Uploading...</p>
                 </div>
                 <div class="col-7 pl-3">
                   <div class="row h-100 align-items-center">
@@ -55,6 +54,11 @@
                       </select>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div class="row no-gutters">
+                <div class="col-3">
+                  <p id="avatarStatus" class="mb-0 text-center text-secondary" style="display:none">Uploading...</p>
                 </div>
               </div>
             </div>
@@ -132,7 +136,7 @@
               <div class="position-relative w-100 m-0" style="height:0;padding-bottom:100%">
                 <img id="playerImage" class="position-absolute img-thumbnail w-100 h-100 rounded-circle" src="img/placeholder.png" style="top:0;left:0">
               </div>
-              <p class="text-center text-break lead"><strong id="playerName">HunYan</strong></p>
+              <p class="text-center text-break lead"><strong id="playerName"></strong></p>
             </div>
           </div>
         </div>
@@ -142,9 +146,7 @@
       <div class="row justify-content-around">
         <div class="card col-11 col-lg-2 p-0 mt-3">
           <div class="list-group list-group-flush position-relative w-100 h-100" style="min-height:500px">
-            <div id="scoreList" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto">
-              <div id="scoreItem" class="list-group-item p-2"></div>
-            </div>
+            <div id="scoreList" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto"></div>
           </div>
         </div>
         <div class="col-11 col-lg-6 order-3 order-lg-2 mt-3">
@@ -226,7 +228,7 @@
               </div>
             </div>
             <div class="container px-2 py-2">
-              <input id="chatInput" type="text" class="form-control" placeholder="Message">
+              <input id="chatInput" type="text" class="form-control" placeholder="Message" maxlength="250">
             </div>
         </div>
       </div>

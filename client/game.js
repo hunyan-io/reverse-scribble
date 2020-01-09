@@ -10,9 +10,6 @@ class Game {
         this.chatBox = document.getElementById('chatBox');
         this.chatInput = document.getElementById('chatInput');
         this.scoreList = document.getElementById('scoreList');
-        this.scoreItem = document.getElementById('scoreItem');
-        this.scoreItem.removeAttribute('id');
-        this.scoreItem.remove();
         this.boardSpace = document.getElementById('boardSpace');
         this.boardModel = document.getElementById('boardModel');
         this.boardModel.removeAttribute('id');
@@ -60,13 +57,37 @@ class Game {
         document.getElementById('eraser').addEventListener('click', () => this.setMode(1), false);
         document.getElementById('fill').addEventListener('click', () => this.setMode(2), false);
         var whiteDiv = false;
+        var lastMessage = {};
         socket.on('message', (nickname, message) => {
             const scrolled = this.chatBox.scrollTop && this.chatBox.scrollTop != this.chatBox.scrollHeight - this.chatBox.clientHeight;
-            const element = document.createElement('div');
-            whiteDiv = !whiteDiv;
-            element.className = 'px-2 bg-' + (whiteDiv ? 'white' : 'light');
-            element.innerHTML = '<strong>'+nickname+':</strong> ';
-            element.appendChild(document.createTextNode(message));
+            var element;
+            if (nickname == lastMessage.sender) {
+                element = lastMessage;
+            } else {
+                whiteDiv = !whiteDiv;
+                element = document.createElement('div');
+                element.className = 'py-1 px-2 bg-' + (whiteDiv ? 'white' : 'light');
+                element.innerHTML = `
+                  <div class="row no-gutters">  
+                    <div class="col-2 p-0">
+                      <div class="position-relative w-100" style="height:0;padding-bottom:100%">
+                        <img class="position-absolute img-thumbnail w-100 h-100 rounded-circle" src="${this.players[nickname].avatar}" style="top:0;left:0">
+                      </div>
+                    </div>
+                    <div class="col-10 pl-2">
+                      <div class="d-flex flex-column w-100 h-100">
+                        <strong>${nickname}</strong>
+                      </div>
+                    </div>
+                  </div>  
+                `;
+            }
+            const text = document.createElement('span');
+            text.style.fontSize = '.8rem';
+            text.textContent = message;
+            element.querySelector('.flex-column').appendChild(text);
+            lastMessage = element;
+            lastMessage.sender = nickname;
             this.chatBox.appendChild(element);
             if (!scrolled) {
                 this.chatBox.scrollTop = this.chatBox.scrollHeight - this.chatBox.clientHeight;
@@ -165,20 +186,37 @@ class Game {
     }
     addPlayer(nickname, score, avatar) {
         const scoreList = this.scoreList,
-              scoreItem = this.scoreItem,
               players = this.players;
+        avatar = avatar ? 'https://i.imgur.com/'+avatar : 'img/placeholder.png';
+        const node = document.createElement('div');
+        node.className = "list-group-item p-1";
+        node.innerHTML = `
+          <div class="row no-gutters">  
+            <div class="col-4 p-1">
+              <div class="position-relative w-100" style="height:0;padding-bottom:100%">
+                <img class="position-absolute img-thumbnail w-100 h-100 rounded-circle" src="${avatar}" style="top:0;left:0">
+              </div>
+            </div>
+            <div class="col-8 pl-2">
+              <div class="d-flex flex-column w-100 h-100 justify-content-center">
+                <strong>${nickname}</strong>
+                <small id="playerScore"></small>
+              </div>
+            </div>
+          </div>  
+        `;
+        node.score = node.querySelector('#playerScore');
+        node.score.removeAttribute('id');
         players[nickname] = {
-            nickname: nickname,
-            avatar: 'https://i.imgur.com/'+avatar, //or better avatarNode (?)
+            avatar: avatar,
+            node: node,
             _score: 0,
             set score(value) { 
                 this._score = value
+                this.node.score.textContent = value + ' pts';
                 scoreList.innerHTML = '';
-                for (const player of Object.values(players).sort((b, a) => a.score - b.score)) {
-                    const node = scoreItem.cloneNode();
-                    node.innerHTML = `<strong>${player.nickname}</strong><br><small>${player.score} pts</small>`;
-                    scoreList.appendChild(node);
-                    player.node = node;
+                for (const player of Object.values(players).sort((b, a) => a.score - b.score)) {                    
+                    scoreList.appendChild(player.node);
                 }
                 scoreList.innerHTML += '<div class="list-group-item"></div>';
             },

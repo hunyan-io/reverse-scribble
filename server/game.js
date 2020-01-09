@@ -164,6 +164,7 @@ class Game {
             }
         }
         player.socket.on('message', message => {
+            if (typeof message != 'string' || !message.length || message.length > 250) return;
             this.constructor.io.to(this.id).emit('message', player.nickname, message);
         });
         this.players.add(player);
