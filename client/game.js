@@ -83,7 +83,7 @@ class Game {
                 `;
             }
             const text = document.createElement('span');
-            text.style.fontSize = '.8rem';
+            text.style.fontSize = '.9rem';
             text.textContent = message;
             element.querySelector('.flex-column').appendChild(text);
             lastMessage = element;
@@ -192,7 +192,7 @@ class Game {
         node.className = "list-group-item p-1";
         node.innerHTML = `
           <div class="row no-gutters">  
-            <div class="col-4 p-1">
+            <div class="col-3 col-md-4 p-1">
               <div class="position-relative w-100" style="height:0;padding-bottom:100%">
                 <img class="position-absolute img-thumbnail w-100 h-100 rounded-circle" src="${avatar}" style="top:0;left:0">
               </div>

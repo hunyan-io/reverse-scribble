@@ -132,7 +132,7 @@
         </div>
         <div class="col-lg-5 order-1 order-lg-2">
           <div id="playerList" class="row">
-            <div id="playerModel" class="col-6 col-lg-3 p-3">
+            <div id="playerModel" class="col-4 col-lg-3 p-3">
               <div class="position-relative w-100 m-0" style="height:0;padding-bottom:100%">
                 <img id="playerImage" class="position-absolute img-thumbnail w-100 h-100 rounded-circle" src="img/placeholder.png" style="top:0;left:0">
               </div>
@@ -144,12 +144,12 @@
     </div>
     <div id="game" class="container-fluid py-3" style="display:none">
       <div class="row justify-content-around">
-        <div class="card col-11 col-lg-2 p-0 mt-3">
-          <div class="list-group list-group-flush position-relative w-100 h-100" style="min-height:500px">
+        <div class="card col-11 col-md-5 col-lg-2 p-0 mt-3">
+          <div class="list-group list-group-flush position-relative w-100 h-100" style="min-height:200px">
             <div id="scoreList" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto"></div>
           </div>
         </div>
-        <div class="col-11 col-lg-6 order-3 order-lg-2 mt-3">
+        <div class="col-11 col-lg-6 order-3 order-lg-2 p-0 mt-3">
           <div class="d-inline-flex w-100 rounded bg-dark lead text-light mb-1" style="height:40px">
             <span id="roundBox" class="ml-2 my-auto"></span>
             <span id="wordContent" class="m-auto"></span>
@@ -166,15 +166,15 @@
               <div class="btn-group btn-group-toggle h-100 pr-2 ml-auto py-1" data-toggle="buttons">
                 <label class="d-flex btn btn-light px-2 py-0 active">
                   <input type="radio" name="tools" id="pen" checked>
-                  <img class="h-100 m-auto" src="img/pen.gif">
+                  <img class="mw-100 h-100 m-auto" src="img/pen.gif">
                 </label>
                 <label class="d-flex btn btn-light p-1">
                   <input type="radio" name="tools" id="eraser">
-                  <img class="h-100 m-auto" src="img/eraser.gif">
+                  <img class="mw-100 h-100 m-auto" src="img/eraser.gif">
                 </label>
                 <label class="d-flex btn btn-light p-1">
                   <input type="radio" name="tools" id="fill">
-                  <img class="h-100 m-auto" src="img/fill.gif">
+                  <img class="mw-100 h-100 m-auto" src="img/fill.gif">
                 </label>
               </div>
               <div class="btn-group mr-2 h-100 py-1">
@@ -222,12 +222,12 @@
             </div>
           </div>
         </div>
-        <div class="card col-11 col-lg-3 order-2 order-lg-3 p-0 pt-2 mt-3">
-            <div class="position-relative w-100 h-100" style="min-height:500px">
+        <div class="card col-11 col-md-5 col-lg-3 order-2 order-lg-3 p-0 pt-2 mt-3">
+            <div class="position-relative w-100 h-100" style="min-height:200px">
               <div id="chatBox" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:auto">
               </div>
             </div>
-            <div class="container px-2 py-2">
+            <div class="w-100 p-2">
               <input id="chatInput" type="text" class="form-control" placeholder="Message" maxlength="250">
             </div>
         </div>
