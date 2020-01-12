@@ -384,7 +384,7 @@ class Game {
             board.workspace = element.parentElement;
             board.canvas.className = 'rounded border';
             board.attach(element);
-            this.players[winner].score += 3;
+            if (this.players[winner]) this.players[winner].score += 3;
         }
         for (const [winner, boardId] of winners[1]) {
             const element = document.getElementById('board-'+boardId);
@@ -392,7 +392,7 @@ class Game {
             board.workspace = element.parentElement;
             board.canvas.className = 'rounded border';
             board.attach(element);
-            this.players[winner].score += 2;
+            if (this.players[winner]) this.players[winner].score += 2;
         }
         for (const [winner, boardId] of winners[2]) {
             const element = document.getElementById('board-'+boardId);
@@ -400,7 +400,7 @@ class Game {
             board.workspace = element.parentElement;
             board.canvas.className = 'rounded border';
             board.attach(element);
-            this.players[winner].score += 1;
+            if (this.players[winner]) this.players[winner].score += 1;
         }
     }
     endGame(winners) {
@@ -415,7 +415,7 @@ class Game {
                         <div class="col-3">
                             ${ winners[1].length ?
                             `<br>
-                            <p class="h1 text-success">#2 (${this.players[winners[1][0]].score} pts)</p>
+                            <p class="h1 text-success">#2 (${winners[1].pop()} pts)</p>
                             <p class="h3">
                                 ${winners[1].join('<br>')}
                             </p>`
@@ -423,7 +423,7 @@ class Game {
                             }
                         </div>
                         <div class="col-3">
-                            <p class="h1 text-primary">#1 (${this.players[winners[0][0]].score} pts)</p>
+                            <p class="h1 text-primary">#1 (${winners[0].pop()} pts)</p>
                             <p class="h3">
                                 ${winners[0].join('<br>')}
                             </p>
@@ -432,7 +432,7 @@ class Game {
                             ${ winners[2].length ?
                             `<br>
                             <br>
-                            <p class="h1 text-danger">#3 (${this.players[winners[2][0]].score} pts)</p>
+                            <p class="h1 text-danger">#3 (${winners[2].pop()} pts)</p>
                             <p class="h3">
                                 ${winners[2].join('<br>')}
                             </p>`

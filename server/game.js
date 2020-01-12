@@ -55,6 +55,9 @@ class Game {
                     break;
                 }
             }
+            if (winners[0].length) winners[0].push(sortedPlayers[0].score);
+            if (winners[1].length) winners[1].push(sortedPlayers[length1].score);
+            if (winners[2].length) winners[2].push(sortedPlayers[length2].score);
             this.constructor.io.to(this.id).emit('endGame', winners);
             return this.remove();
         }
