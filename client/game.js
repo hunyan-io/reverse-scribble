@@ -35,6 +35,7 @@ class Game {
             if (this.board) {
                 this.board.redoList = this.board.redoList.concat(this.board.actions.reverse());
                 this.board.actions = [];
+                this.board.checkpoint = [];
                 this.board.clear();
             }
         });
