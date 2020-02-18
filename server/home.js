@@ -42,11 +42,11 @@ class Home {
             if (player.lobby) return;
             nickname = typeof nickname == 'string' && nickname.trim();
             if (!nickname || nickname.length > 20) return;
-            if (typeof avatar == 'string' && avatar.match(/^[a-zA-Z0-9]{3,15}\.[a-zA-Z]{1,5}$/)) {
+            if (typeof avatar == 'string' && avatar.indexOf('https://res.cloudinary.com/reverse-scribble/image/upload/') == 0) {
                 player.avatar = avatar;
             }
             player.nickname = escapeHTML(nickname);
-            if (!id) {
+            if (!id || !(this.lobbies[id] || this.games[id])) {
                 const iterator = this.ongoing.values();
                 do {
                     id = iterator.next().value;
@@ -62,7 +62,7 @@ class Home {
             if (player.lobby) return;
             nickname = typeof nickname == 'string' && nickname.trim();
             if (!nickname || nickname.length > 20) return;
-            if (typeof avatar == 'string' && avatar.match(/^[a-zA-Z0-9]{3,15}\.[a-zA-Z]{1,5}$/)) {
+            if (typeof avatar == 'string' && avatar.indexOf('https://res.cloudinary.com/reverse-scribble/image/upload/') == 0) {
                 player.avatar = avatar;
             }
             player.nickname = escapeHTML(nickname);

@@ -2,7 +2,7 @@ var room_id;
 for (const parameter of window.location.search.substr(1).split("&")) {
     const pair = parameter.split('=');
     if (pair[0] == 'id') {
-        room_id = decodeURIComponent(pair[1]);
+        room_id = pair[1];
         break;
     }
 }
@@ -15,6 +15,7 @@ class Home {
         const playBtn = document.getElementById('play-btn');
         const roomBtn = document.getElementById('room-btn');
         const nickname = document.getElementById('nickname');
+        nickname.value = localStorage.getItem('nickname');
         const avatar = {
             input: document.getElementById('avatarInput'),
             image: document.getElementById('avatarImg'),
@@ -22,7 +23,10 @@ class Home {
             status: document.getElementById('avatarStatus'),
             overlay: document.getElementById('avatarOverlay'),
             uploading: false,
-            id: null
+            url: localStorage.getItem('avatar')
+        }
+        if (avatar.url) {
+            avatar.image.src = avatar.url;
         }
         socket.on('nameTaken', () => {
             this.alert('Nickname Taken', 'Your nickname is already taken!');
@@ -34,13 +38,14 @@ class Home {
             if (!nickname.value) {
                 return this.alert('Invalid Nickname','Please enter a new nickname!');
             }
-            socket.emit('play', room_id, nickname.value, avatar.id);
+            localStorage.setItem('nickname', nickname.value);
+            socket.emit('play', room_id, nickname.value, avatar.url);
         }, false);
         roomBtn.addEventListener('click', () => {
             if (!nickname.value) {
                 return this.alert('Invalid Nickname', 'Please enter a new nickname!');
             }
-            socket.emit('create', nickname.value, avatar.id);
+            socket.emit('create', nickname.value, avatar.url);
         }, false);
         avatar.field.addEventListener('click', e => {
             if (avatar.uploading) {
@@ -64,18 +69,17 @@ class Home {
             avatar.status.style.display = 'block';
             avatar.field.style.cursor = 'auto';
             const body = new FormData();
-            body.append('image', file);
-            const data = fetch('https://api.imgur.com/3/image', {
+            body.append('file', file);
+            body.append('upload_preset', 'xxwrwhyd')
+            const data = fetch('https://api.cloudinary.com/v1_1/reverse-scribble/image/upload', {
                 method: 'POST',
-                headers: {
-                    Authorization: 'Client-ID c432d526d242309'
-                },
                 body: body
             })
             .then(data => data.json())
             .then(data => {
-                if (data.data.link) {
-                    avatar.id = data.data.link.match(/[^\/]*$/)[0];
+                if (data.secure_url) {
+                    avatar.url = data.secure_url;
+                    localStorage.setItem('avatar', avatar.url);
                     const promise = new Promise((res, rej) => {
                         const timer = setTimeout(rej, 20000);
                         avatar.image.onload = () => {
@@ -83,7 +87,7 @@ class Home {
                             res();
                         }
                     });
-                    avatar.image.src = data.data.link;
+                    avatar.image.src = avatar.url;
                     return promise;
                 } else {
                     throw new Error();

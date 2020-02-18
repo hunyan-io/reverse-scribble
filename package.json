@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "an online HTML5 drawing game",
-  "main": "index.js",
+  "main": "server/main.js",
   "scripts": {
     "start": "node server/main.js",
     "build": "webpack"
@@ -14,8 +14,7 @@
     "express": "^4.17.1",
     "socket.io": "^2.3.0"
   },
-  "author": "HunYan",
-  "license": "MIT",
+  "author": "HunYan-io",
   "devDependencies": {
     "@babel/core": "^7.7.5",
     "@babel/preset-env": "^7.7.6",

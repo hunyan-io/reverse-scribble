@@ -18,6 +18,7 @@ class Lobby {
         this.startBtn = document.getElementById('startGame');
         this.playerList = document.getElementById('playerList');
         this.playerModel = document.getElementById('playerModel');
+        this.lobbyLink = document.getElementById('lobbyLink');        
         this.playerModel.removeAttribute('id');
         this.playerModel.remove();
         this.hidden = true;
@@ -66,8 +67,11 @@ class Lobby {
         this.element.remove();
         this.element.style.display = 'block';
     }
-    start(playerList) {
+    start(id, playerList) {
         document.body.appendChild(this.element);
+        const url = `${window.location.protocol}//${window.location.hostname}${window.location.pathname}?id=${id}`;
+        this.lobbyLink.setAttribute('href', url);
+        this.lobbyLink.textContent = url;
         this.hidden = false;
         this.playerList.innerHTML = '';
         for (const [setting, value] of Object.entries(defaultSet)) {
@@ -117,7 +121,7 @@ class Lobby {
         const playerImage = document.getElementById('playerImage');
         playerImage.removeAttribute('id');
         if (player.avatar) {
-            playerImage.src = 'https://i.imgur.com/'+player.avatar;
+            playerImage.src = player.avatar;
         }
         const playerName = document.getElementById('playerName');
         playerName.removeAttribute('id');

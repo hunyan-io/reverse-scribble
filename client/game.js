@@ -188,7 +188,7 @@ class Game {
     addPlayer(nickname, score, avatar) {
         const scoreList = this.scoreList,
               players = this.players;
-        avatar = avatar ? 'https://i.imgur.com/'+avatar : 'img/placeholder.png';
+        avatar = avatar || 'img/placeholder.png';
         const node = document.createElement('div');
         node.className = "list-group-item p-1";
         node.innerHTML = `

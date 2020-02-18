@@ -10,7 +10,7 @@ const defaults = {
 }
 
 function generateId() {
-    return Buffer.from(new Date().getTime().toString()).toString('base64');
+    return encodeURIComponent(Buffer.from(new Date().getTime().toString()).toString('base64'));
 }
 
 class Lobby {
@@ -85,7 +85,7 @@ class Lobby {
         this.players.add(player);
         player.socket.join(this.id);
         player.socket.broadcast.to(this.id).emit('playerJoin', {nickname:player.nickname, avatar:player.avatar});
-        player.socket.emit('lobbyJoin', Array.from(this.players).map(entry => ({nickname:entry.nickname,avatar:entry.avatar})));
+        player.socket.emit('lobbyJoin', this.id, Array.from(this.players).map(entry => ({nickname:entry.nickname,avatar:entry.avatar})));
         player.lobby = this;
         for (const [setting, value] of Object.entries(this.settings)) {
             if (setting == 'customWords') {

@@ -17,9 +17,9 @@ socket.on('disconnect', () => {
     }
 });
 
-socket.on('lobbyJoin', playerList => {
+socket.on('lobbyJoin', (id, playerList) => {
     if (!home.hidden) home.remove();
-    lobby.start(playerList);
+    lobby.start(id, playerList);
 });
 
 socket.on('gameJoin', (...args) => {
