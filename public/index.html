@@ -43,17 +43,8 @@
                     <div id="avatarOverlay" class="position-absolute lead text-light w-100 h-100 rounded-circle bg-dark align-items-center justify-content-center" style="opacity:0.8;top:0;left:0;display:none">Change</div>
                   </label>
                 </div>
-                <div class="col-7 pl-3">
-                  <div class="row h-100 align-items-center">
-                    <div class="col-12">
-                      <input id="nickname" type="text" class="form-control" maxlength="20" placeholder="Nickname">
-                    </div>
-                    <div class="col-12">
-                      <select class="form-control">
-                        <option>English</option>
-                      </select>
-                    </div>
-                  </div>
+                <div class="col-7 pl-3 align-self-center">
+                  <input id="nickname" type="text" class="form-control" maxlength="20" placeholder="Nickname">
                 </div>
               </div>
               <div class="row no-gutters">
@@ -158,43 +149,47 @@
           </div>
         </div>
         <div class="col-11 col-lg-6 order-3 order-lg-2 p-0 mt-3">
-          <div class="d-inline-flex w-100 rounded bg-dark lead text-light mb-1" style="height:40px">
+          <div class="d-inline-flex w-100 rounded bg-dark lead text-light mb-1" style="height:3rem">
             <span id="roundBox" class="ml-2 my-auto"></span>
             <span id="wordContent" class="m-auto"></span>
             <span id="timeBox" class="mr-2 my-auto"></span>
           </div>
-          <div class="rounded bg-dark mb-1" style="height:40px">
-            <div id="toolBox" class="d-inline-flex w-100 h-100">
-              <div class="mx-2 my-auto">
-                <input type="range" id="thickness" class="form-control-range" min="5" max="50" step="5" value="10">
+          <div class="rounded bg-dark mb-1">
+            <div id="toolBox" class="row no-gutters">
+              <div class="col-lg-4 col-6 align-self-center text-center pt-1 pl-2">
+                  <input type="range" id="thickness" class="custom-range" min="5" max="50" step="5" value="10">
               </div>
-              <div class="mx-2 my-auto" style="min-width:8%">
-                <input type="color" id="colorPalette" class="form-control p-0" value="#010101">
-              </div> 
-              <div class="btn-group btn-group-toggle h-100 pr-2 ml-auto py-1" data-toggle="buttons">
-                <label class="d-flex btn btn-light px-2 py-0 active">
-                  <input type="radio" name="tools" id="pen" checked>
-                  <img class="mw-100 h-100 m-auto" src="img/pen.gif">
-                </label>
-                <label class="d-flex btn btn-light p-1">
-                  <input type="radio" name="tools" id="eraser">
-                  <img class="mw-100 h-100 m-auto" src="img/eraser.gif">
-                </label>
-                <label class="d-flex btn btn-light p-1">
-                  <input type="radio" name="tools" id="fill">
-                  <img class="mw-100 h-100 m-auto" src="img/fill.gif">
-                </label>
+              <div class="col-lg-2 col-6 align-self-center text-center">
+                  <input type="color" id="colorPalette">
               </div>
-              <div class="btn-group mr-2 h-100 py-1">
-                <button type="button" id="undo" class="d-flex btn btn-light h-100 p-1">
-                  <img class="mw-100 h-100 m-auto" src="img/undo.gif">
-                </button>
-                <button type="button" id="redo" class="d-flex btn btn-light h-100 p-1">
-                  <img class="mw-100 h-100 m-auto" src="img/redo.gif">
-                </button>
-                <button type="button" id="clear" class="d-flex btn btn-light h-100 p-0">
-                  <img class="mw-100 h-100 m-auto" src="img/clear.gif">
-                </button>
+              <div class="col-lg-3 col-6 align-self-center text-center">
+                <div class="btn-group btn-group-toggle py-1 pr-2" style="height:3rem" data-toggle="buttons">
+                  <label class="d-flex btn btn-light px-2 py-0 active">
+                    <input type="radio" name="tools" id="pen" checked>
+                    <img class="mw-100 h-100 m-auto" src="img/pen.gif">
+                  </label>
+                  <label class="d-flex btn btn-light p-1">
+                    <input type="radio" name="tools" id="eraser">
+                    <img class="mw-100 h-100 m-auto" src="img/eraser.gif">
+                  </label>
+                  <label class="d-flex btn btn-light p-1">
+                    <input type="radio" name="tools" id="fill">
+                    <img class="mw-100 h-100 m-auto" src="img/fill.gif">
+                  </label>
+                </div>
+              </div>
+              <div class="col-lg-3 col-6 align-self-center text-center">
+                <div class="btn-group pr-2 py-1" style="height:3rem">
+                  <button type="button" id="undo" class="d-flex btn btn-light p-1">
+                    <img class="mw-100 h-100 m-auto" src="img/undo.gif">
+                  </button>
+                  <button type="button" id="redo" class="d-flex btn btn-light p-1">
+                    <img class="mw-100 h-100 m-auto" src="img/redo.gif">
+                  </button>
+                  <button type="button" id="clear" class="d-flex btn btn-light p-0">
+                    <img class="mw-100 h-100 m-auto" src="img/clear.gif">
+                  </button>
+                </div>
               </div>
             </div>
             <div id="displayBox" class="d-flex rounded bg-dark mb-1 p-1 w-100 h-100">

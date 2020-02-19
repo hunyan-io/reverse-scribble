@@ -46,7 +46,8 @@ class Home {
                 player.avatar = avatar;
             }
             player.nickname = escapeHTML(nickname);
-            if (!id || !(this.lobbies[id] || this.games[id])) {
+            var room = id && (this.lobbies[id] || this.games[id]);
+            if (!id || !room || room.locked) {
                 const iterator = this.ongoing.values();
                 do {
                     id = iterator.next().value;

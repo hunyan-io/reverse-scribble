@@ -100,7 +100,7 @@ class Board {
         if (settings) {
             this.thickness = settings.thickness.value;
             this.mode = settings.mode;
-            this.color = settings.color.value;
+            this.color = settings.color();
             this.resetBrush();
         }
     }

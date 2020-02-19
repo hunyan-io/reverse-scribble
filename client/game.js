@@ -1,4 +1,44 @@
+// PICKR PACKAGE
+require('@simonwep/pickr/dist/themes/nano.min.css');
+const Pickr = require('@simonwep/pickr');
+
+const pickr = Pickr.create({
+    el: '#colorPalette',
+    theme: 'nano',
+    default: '#010101',
+    lockOpacity: true,
+    swatches: [
+        'rgb(244, 67, 54)',
+        'rgb(233, 30, 99)',
+        'rgb(156, 39, 176)',
+        'rgb(103, 58, 183)',
+        'rgb(63, 81, 181)',
+        'rgb(33, 150, 243)',
+        'rgb(3, 169, 244)',
+        'rgb(0, 188, 212)',
+        'rgb(0, 150, 136)',
+        'rgb(76, 175, 80)',
+        'rgb(139, 195, 74)',
+        'rgb(205, 220, 57)',
+        'rgb(255, 235, 59)',
+        'rgb(255, 193, 7)'
+    ],
+    components: {
+        preview: true,
+        opacity: false,
+        hue: true,
+        interaction: {}
+    }
+});
+
+
 const Board = require('./board.js');
+
+const hexColor = () => '#' + pickr.getColor().toRGBA().map((x, i) => {
+    if (i > 2) return;
+    const hex = parseInt(x).toString(16)
+    return hex.length === 1 ? '0' + hex : hex
+}).join('')
 
 class Game {
     constructor(socket) {
@@ -21,7 +61,7 @@ class Game {
         this.overlayContent = document.getElementById('overlayContent');
         this.settings = {
             thickness: document.getElementById('thickness'),
-            color: document.getElementById('colorPalette'),
+            color: hexColor,
             mode: 0
         }
         this.displayBy = 2;
@@ -45,12 +85,14 @@ class Game {
                 this.board.resetBrush();
             }
         }, false);
-        this.settings.color.addEventListener('change', () => {
+        pickr.on('change', () => {
+            console.log(hexColor(), pickr.getColor().toRGBA());
             if (this.board) {
-                this.board.color = this.settings.color.value;
+                pickr.applyColor();
+                this.board.color = hexColor();
                 this.board.resetBrush();
             }
-        }, false);
+        });
         document.getElementById('displayBy2').addEventListener('click', () => this.setDisplay(2), false);
         document.getElementById('displayBy3').addEventListener('click', () => this.setDisplay(3), false);
         document.getElementById('displayBy4').addEventListener('click', () => this.setDisplay(4), false);
@@ -233,7 +275,7 @@ class Game {
         this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');
         this.wordContent.textContent = word;
         this.timeBox.textContent = maxTime;
-        this.toolBox.className = this.toolBox.className.replace('d-none', 'd-inline-flex');
+        this.toolBox.style.removeProperty('display');
         this.displayBox.className = this.displayBox.className.replace('d-flex', 'd-none');
         this.boardSpace.innerHTML = '';
         this.boardSpace.className = '';
@@ -293,7 +335,7 @@ class Game {
     }
     newVote(boards, maxTime) {
         this.overlay.className = this.overlay.className.replace('d-flex', 'd-none');;
-        this.toolBox.className = this.toolBox.className.replace('d-inline-flex', 'd-none');
+        this.toolBox.style.display = 'none';
         this.displayBox.className = this.displayBox.className.replace('d-none', 'd-flex');
         this.boardSpace.innerHTML = '';
         this.boardSpace.className = 'row no-gutters justify-content-center';

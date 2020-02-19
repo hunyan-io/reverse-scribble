@@ -69,7 +69,7 @@ class Lobby {
     }
     start(id, playerList) {
         document.body.appendChild(this.element);
-        const url = `${window.location.protocol}//${window.location.hostname}${window.location.pathname}?id=${id}`;
+        const url = `${window.location.protocol}//${window.location.hostname}${(window.location.port && window.location.port != 80) ? ':'+window.location.port : ''}${window.location.pathname}?id=${id}`;
         this.lobbyLink.setAttribute('href', url);
         this.lobbyLink.textContent = url;
         this.hidden = false;
