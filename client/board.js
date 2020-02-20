@@ -235,7 +235,6 @@ class Board {
         //flood fill algorithm from http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
         var dstImg = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height);
         var dstData = dstImg.data;
-      
         var startPos = getPixelPos(this.canvas, startX, startY);
         if (!matchStartColor(dstData, startPos, fillColor)) {
             var startColor = {
@@ -252,20 +251,18 @@ class Board {
                 var x = pos[0];
                 var y = pos[1];  
                 var currentPos = getPixelPos(this.canvas, x, y);
-            
                 while((y-- >= 0) && matchStartColor(dstData, currentPos, startColor)) {
                     currentPos -= this.canvas.width * 4;
                 }
-            
+                colorPixel(dstData, currentPos-this.canvas.width*4, fillColor);
+                colorPixel(dstData, currentPos, fillColor);
                 currentPos += this.canvas.width * 4;
                 ++y;
                 var reachLeft = false;
                 var reachRight = false;
-            
                 while((y++ < this.canvas.height-1) && matchStartColor(dstData, currentPos, startColor)) {
             
                     colorPixel(dstData, currentPos, fillColor);
-              
                     if (x > 0) {
                         if (matchStartColor(dstData, currentPos-4, startColor)) {
                             if (!reachLeft) {
@@ -274,6 +271,8 @@ class Board {
                             }
                         } else if (reachLeft) {
                             reachLeft = false;
+                            colorPixel(dstData, currentPos-4, fillColor);
+                            colorPixel(dstData, currentPos-8, fillColor);
                         }
                     }
               
@@ -285,11 +284,15 @@ class Board {
                             }
                         } else if (reachRight) {
                             reachRight = false;
+                            colorPixel(dstData, currentPos+4, fillColor);
+                            colorPixel(dstData, currentPos+8, fillColor);
                         }
                     }
 
                     currentPos += this.canvas.width * 4;
                 }
+                colorPixel(dstData, currentPos, fillColor);
+                colorPixel(dstData, currentPos+this.canvas.width*4, fillColor);
             }
         }
         const dstCanvas = document.createElement('canvas');

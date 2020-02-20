@@ -7,6 +7,7 @@ const pickr = Pickr.create({
     theme: 'nano',
     default: '#010101',
     lockOpacity: true,
+    closeOnScroll: true,
     swatches: [
         'rgb(244, 67, 54)',
         'rgb(233, 30, 99)',
@@ -24,7 +25,6 @@ const pickr = Pickr.create({
         'rgb(255, 193, 7)'
     ],
     components: {
-        preview: true,
         opacity: false,
         hue: true,
         interaction: {}
@@ -33,6 +33,10 @@ const pickr = Pickr.create({
 
 
 const Board = require('./board.js');
+const sfx = ['join', 'submit', 'vote', 'unvote', 'win', 'end'].reduce((obj, key) => {
+    obj[key] = new Audio(`sfx/${key}.mp3`);
+    return obj;
+}, {});
 
 const hexColor = () => '#' + pickr.getColor().toRGBA().map((x, i) => {
     if (i > 2) return;
@@ -86,7 +90,6 @@ class Game {
             }
         }, false);
         pickr.on('change', () => {
-            console.log(hexColor(), pickr.getColor().toRGBA());
             if (this.board) {
                 pickr.applyColor();
                 this.board.color = hexColor();
@@ -152,10 +155,12 @@ class Game {
         });
         socket.on('endRound', () => {
             socket.emit('submit', this.board.compress());
+            sfx.submit.play();
             this.waitForSubmit();
         });
         socket.on('newVote', (boards, maxTime) => this.newVote(boards, maxTime));
         socket.on('winners', winners => {
+            sfx.win.play();
             this.roundWinners(winners);
         });
         this.element.remove();
@@ -163,6 +168,7 @@ class Game {
     }
     start(stats) {
         const [state, round, maxRound, word, playerList, args] = stats;
+        sfx.join.play();
         document.body.appendChild(this.element);
         this.hidden = false;
         this.chatBox.innerHTML = '';
@@ -307,6 +313,7 @@ class Game {
         if (id !== undefined) {
             voteBtn.addEventListener('click', () => {
                 voting = !voting;
+                sfx[voting ? 'vote' : 'unvote'].play();
                 voteBtn.className = voteBtn.className.replace(voting ? 'btn-primary' : 'btn-danger', voting ? 'btn-danger' : 'btn-primary');
                 voteBtn.textContent = voting ? 'Unvote' : 'Vote';
                 board.display.className = 'bg-light mb-auto rounded border' + (voting ? ' border-primary col-' : ' col-')+(12/this.displayBy);
@@ -447,6 +454,7 @@ class Game {
         }
     }
     endGame(winners) {
+        sfx.end.play();
         this.overlayContent.innerHTML = '';
         setTimeout(() => {
             this.overlayContent.innerHTML = `
