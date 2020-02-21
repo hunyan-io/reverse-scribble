@@ -355,15 +355,16 @@ class Game {
         this.boards = boards.map(info => info && new Board().decompress(info));
         this.timeBox.textContent = maxTime;
         this.addBoard(selfBoard);
-        var id = 0;
+        var id = -1;
         for (const board of this.boards) {
+            id++;
             if (!board) {
                 if (selfBoard) {
-                    this.boards[this.boards.indexOf(board)] = selfBoard;
+                    this.boards[id] = selfBoard;
                 }
                 continue;
             }
-            this.addBoard(board, id++);
+            this.addBoard(board, id);
         }
     }
     roundWinners(winners) {
@@ -373,7 +374,8 @@ class Game {
                     <div class="col display-3">Vote Results (Round ${this.round} of ${this.maxRound})</div>
                 </div>
                 <div class="row justify-content-center">
-                    <div class="col-4">
+                    ${ winners[0].length ?
+                    `<div class="col-4">
                         ${ winners[1].length ?
                         `<br>
                         <p class="h1">${winners[1].pop()} VOTES</p>
@@ -423,7 +425,12 @@ class Game {
                         </div>`
                             : ''
                         }
+                    </div>`
+                    : 
+                    `<div class="col pt-3 display-4">
+                        No one got votes!
                     </div>
+                    ` }
                 </div>
             </div>
         `;
@@ -463,7 +470,8 @@ class Game {
                         <div class="col display-2 text-white">Winners</div>
                     </div>
                     <div class="row justify-content-center">
-                        <div class="col-3">
+                        ${ winners[0].length ?
+                        `<div class="col-3">
                             ${ winners[1].length ?
                             `<br>
                             <p class="h1 text-success">#2 (${winners[1].pop()} pts)</p>
@@ -489,7 +497,11 @@ class Game {
                             </p>`
                                 : ''
                             }
-                        </div>
+                        </div>`
+                        :
+                        `<div class="col pt-3 display-4">
+                            No one got points!
+                        </div>` }
                     </div>
                     <div class="row justify-content-center mt-4">
                         <div class="col-9">

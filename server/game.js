@@ -42,6 +42,7 @@ class Game {
             const winners = [[], [], []];
             var length1 = 0, length2 = 0;
             for (const player of sortedPlayers) {
+                if (!player.score) break;
                 if (player.score == sortedPlayers[0].score) {
                     winners[0].push(player.nickname);
                     length1++;
@@ -101,6 +102,10 @@ class Game {
             player.votedOn = [];
             player.socket.removeAllListeners('submit');
             player.socket.on('vote', id => {
+                console.log(this.votingPlayers[id].nickname,
+                            this.votingPlayers[id].votes,
+                            this.votingPlayers[id].votedOn,
+                            player.nickname)
                 if (this.votingPlayers[id] && this.votingPlayers[id] !== player && !player.votedOn[id]) {
                     player.votedOn[id] = true;
                     this.votingPlayers[id].votes++;
@@ -132,6 +137,7 @@ class Game {
                 this.winners = [[], [], []];
                 var length1 = 0, length2 = 0;
                 for (const player of sortedPlayers) {
+                    if (!player.votes) break;
                     if (player.votes == sortedPlayers[0].votes) {
                         this.winners[0].push([player.nickname, player.boardId]);
                         player.score += 3;
